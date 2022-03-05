@@ -8,7 +8,7 @@ import minObjectOne from './data/min_objects_one.json'
 import minObjectTwo from './data/min_objects_two.json'
 
 function App() {
-    const [objectsSet, setObjectsSet] = useState(1)
+    const [objectsSet, setObjectsSet] = useState(2)
     const onClickHandler = () => {
         setObjectsSet(objectsSet + 1)
     }
@@ -16,7 +16,10 @@ function App() {
         <div className={styles.App}>
             <TestingPanel callback={onClickHandler}/>
             <div className={styles.mapContainer}>
-                <MapMain objs={objectsSet % 2 === 1 ? minObjectOne as objectType[] : minObjectTwo as objectType[]}/>
+                <MapMain objs={
+                    objectsSet % 2 === 1 ?
+                        minObjectOne as unknown as objectType[] :
+                        minObjectTwo as unknown as objectType[]}/>
             </div>
         </div>
     );

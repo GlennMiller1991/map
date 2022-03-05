@@ -9,28 +9,38 @@ type MapMainProps = {
 export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
         console.log('from mapMain')
         const [map, setMap] = useState(null)
-        let currentMarkers = useRef<any[]>([])
+        let currentObjectsOnMap = useRef<any[]>([])
 
         useEffect(() => {
             console.log('from useEffect')
 
             if (map) {
-                debugger
-                if (currentMarkers.current.length) {
-                    currentMarkers.current.forEach((marker) => {
+                if (currentObjectsOnMap.current.length) {
+                    currentObjectsOnMap.current.forEach((marker) => {
                         marker.removeFrom(map)
                     })
                 }
                 if (props.objs.length) {
-                    let newMarkers: any[] = []
+                    let newObjects: any[] = []
                     props.objs.forEach((obj, index) => {
-                        const marker = DG.marker(obj).addTo(map)
-                        marker.on('click', () => {
-                            marker.bindPopup(obj.name).openPopup();
+                        debugger
+                        let objectToMap:any
+                        if (obj.itIs === 'point') {
+                            objectToMap = DG.marker([obj.coords[0].lat, obj.coords[0].lng]).addTo(map)
+                        } else if (obj.itIs === 'line') {
+                            debugger
+                            let coords = obj.coords.map(point => [point.lat, point.lng])
+                            objectToMap = DG.polyline(coords).addTo(map)
+                        } else if (obj.itIs === 'polygon') {
+                            let coords = obj.coords.map(point => [point.lat, point.lng])
+                            objectToMap = DG.polygon(coords).addTo(map)
+                        }
+                        objectToMap.on('click', () => {
+                            objectToMap.bindPopup(obj.name).openPopup();
                         })
-                        newMarkers[index] = marker
+                        newObjects[index] = objectToMap
                     })
-                    currentMarkers.current = newMarkers
+                    currentObjectsOnMap.current = newObjects
                 }
             }
         }, [props.objs, map])
