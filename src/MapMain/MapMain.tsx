@@ -25,6 +25,9 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                     let newMarkers: any[] = []
                     props.objs.forEach((obj, index) => {
                         const marker = DG.marker(obj).addTo(map)
+                        marker.on('click', () => {
+                            marker.bindPopup(obj.name).openPopup();
+                        })
                         newMarkers[index] = marker
                     })
                     currentMarkers.current = newMarkers
