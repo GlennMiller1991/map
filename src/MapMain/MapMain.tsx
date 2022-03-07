@@ -1,5 +1,7 @@
 import React, {useEffect, useRef, useState} from "react";
 import {objectType} from "../types";
+import {generateCoords} from "../utils/generateCoords";
+import {getBounds} from "../utils/getBounds";
 
 const DG = require('2gis-maps');
 
@@ -23,23 +25,24 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                 if (props.objs.length) {
                     let newObjects: any[] = []
                     props.objs.forEach((obj, index) => {
-                        debugger
-                        let objectToMap:any
+                        let objectToMap: any
+                        if (!obj.coords.length) {
+                            generateCoords(obj)
+                        }
                         if (obj.itIs === 'point') {
-                            objectToMap = DG.marker([obj.coords[0].lat, obj.coords[0].lng]).addTo(map)
+                            objectToMap = DG.marker(obj.coords[0]).addTo(map)
                         } else if (obj.itIs === 'line') {
-                            debugger
-                            let coords = obj.coords.map(point => [point.lat, point.lng])
-                            objectToMap = DG.polyline(coords).addTo(map)
+                            objectToMap = DG.polyline(obj.coords).addTo(map)
                         } else if (obj.itIs === 'polygon') {
-                            let coords = obj.coords.map(point => [point.lat, point.lng])
-                            objectToMap = DG.polygon(coords).addTo(map)
+                            objectToMap = DG.polygon(obj.coords).addTo(map)
                         }
                         objectToMap.on('click', () => {
                             objectToMap.bindPopup(obj.name).openPopup();
                         })
                         newObjects[index] = objectToMap
                     })
+                    //@ts-ignore
+                    map.flyToBounds(getBounds(props.objs))
                     currentObjectsOnMap.current = newObjects
                 }
             }
@@ -54,7 +57,7 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                              if (!map) {
                                  let mapElem = DG.map('map', {
                                      'center': [55.754753, 37.620861],
-                                     'zoom': 11
+                                     'zoom': 9
                                  })
                                  setMap(mapElem)
                              }

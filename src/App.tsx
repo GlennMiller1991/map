@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import styles from './App.module.scss';
 import {MapMain} from "./MapMain/MapMain";
 import sportObjects from './data/sport_objects.json'
@@ -8,32 +8,23 @@ import minObjectOne from './data/min_objects_one.json'
 import minObjectTwo from './data/min_objects_two.json'
 
 function App() {
-    const [objectsSet, setObjectsSet] = useState(2)
+    const [objectsSet, setObjectsSet] = useState(minObjectTwo as objectType[])
     const onClickHandler = () => {
-        setObjectsSet(objectsSet + 1)
+        setObjectsSet(objectsSet.map((object) => {
+            object.coords = []
+            return object
+        }))
     }
     return (
         <div className={styles.App}>
-            <TestingPanel callback={onClickHandler}/>
+            <div>
+                <button onClick={onClickHandler}>Another objects</button>
+            </div>
             <div className={styles.mapContainer}>
-                <MapMain objs={
-                    objectsSet % 2 === 1 ?
-                        minObjectOne as unknown as objectType[] :
-                        minObjectTwo as unknown as objectType[]}/>
+                <MapMain objs={objectsSet}/>
             </div>
         </div>
     );
 }
 
 export default App;
-
-type TestingPanelType = {
-    callback: () => void
-}
-export const TestingPanel: React.FC<TestingPanelType> = React.memo((props) => {
-    return (
-        <div>
-            <button onClick={props.callback}>Another objects</button>
-        </div>
-    )
-})

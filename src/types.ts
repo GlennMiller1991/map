@@ -1,13 +1,13 @@
 export type objectType = {
-    coords: latLngType[],
+    coords: coordsType
     itIs: itIsType,
     name: string,
     [keyName: string]: any,
 }
 
-type latLngType = {
-    lat: number,
-    lng: number,
-}
+export type coordsType = pointCoordsType[] | Array<pointCoordsType[]>
+export type pointCoordsType = [latitudeType, longitudeType]
+type latitudeType = number
+type longitudeType = number
 
 type itIsType = 'point' | 'line' | 'polygon'
