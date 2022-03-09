@@ -1,19 +1,45 @@
-import React, {useEffect, useRef, useState} from "react";
-import {objectType} from "../types";
+import React, {useCallback, useEffect, useRef, useState} from "react";
+import {coordsType, objectType} from "../types";
 import {generateCoords} from "../utils/generateCoords";
 import {getBounds} from "../utils/getBounds";
+import {EventEmitter} from "events";
+import uuid from 'uuid'
 
 const DG = require('2gis-maps');
 
 type MapMainProps = {
-    objs: objectType[]
+    objs: objectType[],
+    editMode: boolean,
+    emitter: EventEmitter,
+    createObject: (obj: objectType) => void,
 }
 export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
         //state
         const [map, setMap] = useState(null)
 
+
         // доступ к актуальным данным расположенных на карте объектов не через useState
         let currentObjectsOnMap = useRef<any[]>([])
+        let currentEditMode = useRef<boolean>(props.editMode)
+
+        const setObjectToEditSideBar = useCallback((latLng: coordsType) => {
+            props.emitter.emit('objectWasCreated', latLng)
+        }, [props.emitter])
+        const createObj = (event: any, map: any) => {
+            let latLng = [event.latlng.lat, event.latlng.lng]
+            let marker = DG.marker([...latLng], {
+                draggable: true,
+            }).addTo(map);
+            props.createObject({
+                coords: latLng,
+                itIs: "point",
+                name: '',
+                id: uuid(),
+                address: '',
+
+            })
+            //setObjectToEditSideBar(latLng)
+        }
 
         useEffect(() => {
             // данная структура позволяет реакту отрисовывать только
@@ -67,6 +93,9 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                 }
             }
         }, [props.objs, map])
+        useEffect(() => {
+            currentEditMode.current = props.editMode
+        }, [props.editMode])
 
         return (
             <>
@@ -82,11 +111,17 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                                      'center': [55.754753, 37.620861],
                                      'zoom': 9
                                  })
+                                 mapElem.on('click', (event: any) => {
+                                     if (currentEditMode.current) {
+                                         createObj(event, mapElem)
+                                     }
+                                 })
                                  setMap(mapElem)
                                  // сохраняем карту в state
                              }
                          }
-                     }}/>
+                     }}>
+                </div>
             </>
         )
     }
