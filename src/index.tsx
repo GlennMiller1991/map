@@ -7,6 +7,7 @@ import reportWebVitals from './reportWebVitals';
 
 const DG = require('2gis-maps');
 DG.plugin('https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js')
+// доп либа по кластеризации
     .then(
         function () {
             ReactDOM.render(
