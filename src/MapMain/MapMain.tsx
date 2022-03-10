@@ -1,8 +1,6 @@
-import React, {useCallback, useEffect, useRef, useState} from "react";
-import {coordsType, objectType} from "../types";
-import {generateCoords} from "../utils/generateCoords";
+import React, {useEffect, useRef, useState} from "react";
+import {objectType} from "../types";
 import {getBounds} from "../utils/getBounds";
-import {EventEmitter} from "events";
 import {v1} from "uuid";
 
 const DG = require('2gis-maps');
@@ -10,7 +8,6 @@ const DG = require('2gis-maps');
 type MapMainProps = {
     objs: objectType[],
     editMode: boolean,
-    emitter: EventEmitter,
     createObject: (obj: objectType) => void,
 }
 export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
@@ -33,19 +30,21 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                 draggable: true,
             }).addTo(map);
             currentEditingObject.current = marker
+            currentObjectsOnMap.current.push(marker)
             props.createObject({
                 coords: latLng,
                 itIs: "point",
                 name: '',
                 id: v1(),
-                address: {
-                    building: 0,
-                    city: '',
-                    office: 0,
-                    street: '',
-                },
+                address: '',
+                //     {
+                //     building: 0,
+                //     city: '',
+                //     office: 0,
+                //     street: '',
+                // },
                 classOfObject: null,
-                square: 0,
+                square: '0',
                 squareBorders: [],
                 telephone: ''
             })
@@ -84,7 +83,9 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                             objectToMap = DG.polygon(obj.coords).addTo(map)
                         }
                         objectToMap.on('click', () => {
-                            objectToMap.bindPopup(obj.name).openPopup();
+                            if (currentEditMode) {
+                                props.createObject(obj);
+                            }
                         })
                         newObjects[index] = objectToMap
                     })

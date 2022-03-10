@@ -10,9 +10,9 @@ export type objectType = {
     coords: coordsType
     itIs: itIsType,
     name: string,
-    address: addressType,
+    address: string, //addressType,
     telephone: string,
-    square: number,
+    square: string,
     squareBorders: coordsType,
     classOfObject: objectClassType,
     [keyName: string]: any,

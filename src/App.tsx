@@ -1,46 +1,49 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import styles from './App.module.scss';
 import {MapMain} from "./MapMain/MapMain";
 import {objectType} from "./types";
-import {EventEmitter} from "events";
 import {EditSideBar} from "./EditSideBar/EditSideBar";
 
 export const fakeObject: objectType = {
     classOfObject: null,
-    square: 0,
+    square: '0',
     coords: [],
     telephone: '',
     id: '-1',
     name: '',
-    address: {
-        building: 0,
-        city: '',
-        office: 0,
-        street: '',
-    },
+    address: '',
+
     itIs: "point",
     squareBorders: [],
 }
 
 function App() {
 
+    //state
     const [currentObject, setCurrentObject] = useState<objectType>(fakeObject)
-    const [editMode, setEditMode] = useState(true)
+    const [editMode, setEditMode] = useState(false)
     const [objectsSet, setObjectsSet] = useState<objectType[]>([])
-    const emitter = useMemo(() => {
-        return new EventEmitter()
-    }, [])
 
     //callbacks
     const onClickHandler = () => {
+        if (editMode) {
+            setObjectsSet([...objectsSet])
+        } else {
+            setCurrentObject(fakeObject)
+        }
         setEditMode(!editMode)
     }
     const createObject = (obj: objectType) => {
         setCurrentObject(obj)
     }
     const addObject = useCallback((obj: objectType) => {
+        onClickHandler()
         setObjectsSet([...objectsSet, obj])
-    }, [objectsSet])
+    }, [objectsSet, onClickHandler])
+    const updateObject = (obj: objectType) => {
+        onClickHandler()
+        setObjectsSet(objectsSet.map((object) => object.id === obj.id ? obj : object))
+    }
 
     return (
         <div className={styles.App}>
@@ -49,12 +52,17 @@ function App() {
                     <span className={styles.addSign}>Add</span>
                 </button>
                 {
-                    editMode && <EditSideBar emitter={emitter} object={currentObject} addObject={addObject}/>
+                    editMode &&
+                    <EditSideBar object={currentObject}
+                                  callback={
+                                      objectsSet.find(object => object.id === currentObject.id) ?
+                                          updateObject :
+                                          addObject
+                                  }/>
                 }
                 <MapMain objs={objectsSet}
                          editMode={editMode}
-                         createObject={createObject}
-                         emitter={emitter}/>
+                         createObject={createObject}/>
             </div>
         </div>
     );
