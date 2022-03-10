@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import styles from './App.module.scss';
 import {MapMain} from "./MapMain/MapMain";
-import {drawingClassType, objectType} from "./types";
+import {objectType} from "./types";
 import {EditSideBar} from "./EditSideBar/EditSideBar";
 import EventEmitter from "events";
 
@@ -26,7 +26,6 @@ function App() {
     const [currentObject, setCurrentObject] = useState<objectType>(fakeObject)
     const [editMode, setEditMode] = useState(false)
     const [objectsSet, setObjectsSet] = useState<objectType[]>([])
-    const [drawingClass, setDrawingClass] = useState<drawingClassType>('entrance')
     const [emitterSideBar, emitterMap]  = useMemo(() => {
         return [new EventEmitter(), new EventEmitter()]
     }, [])
@@ -38,7 +37,6 @@ function App() {
         } else {
             setCurrentObject(fakeObject)
         }
-        setDrawingClass("defaultTypes")
         setEditMode(!editMode)
     }
     const createObject = (obj: objectType) => {
@@ -52,10 +50,6 @@ function App() {
         onClickHandler()
         setObjectsSet(objectsSet.map((object) => object.id === obj.id ? obj : object))
     }
-    const changeDrawMode = useCallback((draw_class: drawingClassType) => {
-        setDrawingClass(draw_class)
-    }, [])
-
 
     return (
         <div className={styles.App}>
@@ -68,7 +62,6 @@ function App() {
                     <EditSideBar emitterSideBar={emitterSideBar}
                                  emitterMap={emitterMap}
                                  object={currentObject}
-                                 changeDrawMode={changeDrawMode}
                                  callback={
                                       objectsSet.find(object => object.id === currentObject.id) ?
                                           updateObject :
@@ -77,7 +70,6 @@ function App() {
                 }
                 <MapMain emitterMap={emitterMap}
                          emitterSideBar={emitterSideBar}
-                         drawingClass={drawingClass}
                          objs={objectsSet}
                          editMode={editMode}
                          createObject={createObject}/>

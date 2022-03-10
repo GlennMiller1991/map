@@ -17,7 +17,6 @@ type MapMainProps = {
     objs: objectType[],
     editMode: boolean,
     createObject: (obj: objectType) => void,
-    drawingClass: drawingClassType,
 }
 export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
 
@@ -28,8 +27,9 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
         let currentObjectsOnMap = useRef<any[]>([])
         let currentEditMode = useRef<boolean>(props.editMode)
         let currentEditingObjectOnMap = useRef<any>(null)
-        let currentDrawClass = useRef<drawingClassType>(props.drawingClass)
+        let currentDrawClass = useRef<drawingClassType>("defaultTypes")
         let currentEntrance = useRef<any>(null)
+        let currentSquare = useRef<any>(null)
 
         const createObj = (event: any, map: any) => {
             if (currentEditingObjectOnMap.current) {
@@ -64,6 +64,21 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
             currentEntrance.current = marker
             props.emitterMap.emit('entranceWasCreated', latLng)
         }
+        const createSquare = (event: any, map: any) => {
+            if (currentSquare.current) {
+                let latLng = [event.latlng.lat, event.latlng.lng]
+                currentSquare.current.addLatLng(latLng)
+                props.emitterMap.emit(
+                    'squareWasCreated',
+                    currentSquare.current.getLatLngs()[0].map((coords: any) => [coords.lat, coords.lng])
+                )
+            } else {
+                let latLng = [event.latlng.lat, event.latlng.lng]
+                let square = DG.polygon([latLng]).addTo(map)
+                currentSquare.current = square
+                currentObjectsOnMap.current.push(square)
+            }
+        }
 
         useEffect(() => {
             // данная структура позволяет реакту отрисовывать только
@@ -78,12 +93,12 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                     })
                 }
                 if (props.objs.length) {
-                    debugger
                     // useEffect реагирует на изменение переданного массива объектов в компоненту
                     //
                     // если они есть и изменились
                     let newObjects: any[] = []
                     props.objs.forEach((obj, index) => {
+                        debugger
                         // то прикрепляем к карте
                         let objectToMap: any
 
@@ -108,6 +123,10 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                             let marker = DG.marker(latLng, {icon: entrancePic, opacity: 0.6}).addTo(map);
                             newObjects.push(marker)
                         }
+                        if (obj.squareBorders && obj.squareBorders.length) {
+                            let square = DG.polygon(obj.squareBorders).addTo(map)
+                            newObjects.push(square)
+                        }
                     })
                     //@ts-ignore
                     // корректируем зум карты на основании актуальных координат
@@ -121,9 +140,6 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
         useEffect(() => {
             currentEditMode.current = props.editMode
         }, [props.editMode])
-        useEffect(() => {
-            currentDrawClass.current = props.drawingClass
-        }, [props.drawingClass])
         useEffect(() => {
             props.emitterSideBar.on('changeDrawMode', (drawMode: drawingClassType) => {
                 currentDrawClass.current = drawMode
@@ -152,8 +168,10 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                                      if (currentEditMode.current) {
                                          if (currentDrawClass.current === 'defaultTypes') {
                                              createObj(event, mapElem)
-                                         } else {
+                                         } else if (currentDrawClass.current === 'entrance') {
                                              createEntrance(event, mapElem)
+                                         } else if (currentDrawClass.current === 'square') {
+                                             createSquare(event, mapElem)
                                          }
                                      }
                                  })

@@ -8,7 +8,6 @@ type EditSideBarPropsType = {
     emitterMap: EventEmitter,
     object: objectType,
     callback: (obj: objectType) => void,
-    changeDrawMode: (draw_class: drawingClassType) => void,
 }
 export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) => {
     const [currentObject, setCurrentObject] = useState<objectType>(props.object)
@@ -17,8 +16,8 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
     const updateObject = useCallback((obj: Partial<objectType>) => {
         setCurrentObject({...currentObject, ...obj})
     }, [currentObject])
-    const changeDrawMode = () => {
-        const nextMode = currentDrawMode.current === 'defaultTypes' ? 'entrance' : 'defaultTypes'
+    const changeDrawMode = (mode: drawingClassType) => {
+        const nextMode = currentDrawMode.current === mode ? 'defaultTypes' : mode
         currentDrawMode.current = nextMode
         props.emitterSideBar.emit('changeDrawMode', nextMode)
     }
@@ -26,6 +25,9 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
     useEffect(() => {
         props.emitterMap.on('entranceWasCreated', (coords: coordsType) => {
             updateObject({entranceCoords: coords})
+        })
+        props.emitterMap.on('squareWasCreated', (coords: coordsType) => {
+            updateObject({squareBorders: coords})
         })
         return () => {
             props.emitterMap.removeAllListeners()
@@ -37,26 +39,32 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
 
     return (
         <div className={styles.editSideBar}>
-            <div>
-                Click on the map first
+            <div className={styles.container}>
+                <div>
+                    <button onClick={() => changeDrawMode('defaultTypes')}>Указать объект</button>
+                </div>
+                <div>
+                    <button onClick={() => changeDrawMode('entrance')}>Указать вход</button>
+                </div>
+                <div>
+                    <button onClick={() => changeDrawMode("square")}>Указать территорию</button>
+                </div>
+                <CustomInput text={'Название'} value={currentObject.name} keyName={'name'} callback={updateObject}/>
+                <CustomInput text={'Адрес'} value={currentObject.address} keyName={'address'} callback={updateObject}/>
+                <CustomInput text={'Телефон'} value={currentObject.telephone} keyName={'telephone'}
+                             callback={updateObject}/>
+                <CustomInput text={'Площадь'} value={currentObject.square} keyName={'square'} callback={updateObject}/>
+                <div>
+                    Add square
+                    <br/>
+                    <input disabled={currentObject.id === '-1'}/>
+                </div>
+
+                <button disabled={currentObject.id === '-1'}
+                        onClick={() => props.callback(currentObject)}>
+                    update object
+                </button>
             </div>
-            <CustomInput text={'Название'} value={currentObject.name} keyName={'name'} callback={updateObject}/>
-            <CustomInput text={'Адрес'} value={currentObject.address} keyName={'address'} callback={updateObject}/>
-            <CustomInput text={'Телефон'} value={currentObject.telephone} keyName={'telephone'}
-                         callback={updateObject}/>
-            <CustomInput text={'Площадь'} value={currentObject.square} keyName={'square'} callback={updateObject}/>
-            <div>
-                Add square
-                <br/>
-                <input disabled={currentObject.id === '-1'}/>
-            </div>
-            <div>
-                <button onClick={changeDrawMode}>Указать вход</button>
-            </div>
-            <button disabled={currentObject.id === '-1'}
-                    onClick={() => props.callback(currentObject)}>
-                update object
-            </button>
         </div>
     )
 })
