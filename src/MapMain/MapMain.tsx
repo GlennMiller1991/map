@@ -3,7 +3,7 @@ import {coordsType, objectType} from "../types";
 import {generateCoords} from "../utils/generateCoords";
 import {getBounds} from "../utils/getBounds";
 import {EventEmitter} from "events";
-import uuid from 'uuid'
+import {v1} from "uuid";
 
 const DG = require('2gis-maps');
 
@@ -21,24 +21,34 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
         // доступ к актуальным данным расположенных на карте объектов не через useState
         let currentObjectsOnMap = useRef<any[]>([])
         let currentEditMode = useRef<boolean>(props.editMode)
+        let currentEditingObject = useRef<any>(null)
 
-        const setObjectToEditSideBar = useCallback((latLng: coordsType) => {
-            props.emitter.emit('objectWasCreated', latLng)
-        }, [props.emitter])
+
         const createObj = (event: any, map: any) => {
+            if (currentEditingObject.current) {
+                currentEditingObject.current.removeFrom(map)
+            }
             let latLng = [event.latlng.lat, event.latlng.lng]
-            let marker = DG.marker([...latLng], {
+            const marker = DG.marker([...latLng], {
                 draggable: true,
             }).addTo(map);
+            currentEditingObject.current = marker
             props.createObject({
                 coords: latLng,
                 itIs: "point",
                 name: '',
-                id: uuid(),
-                address: '',
-
+                id: v1(),
+                address: {
+                    building: 0,
+                    city: '',
+                    office: 0,
+                    street: '',
+                },
+                classOfObject: null,
+                square: 0,
+                squareBorders: [],
+                telephone: ''
             })
-            //setObjectToEditSideBar(latLng)
         }
 
         useEffect(() => {
@@ -54,6 +64,7 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                     })
                 }
                 if (props.objs.length) {
+                    debugger
                     // useEffect реагирует на изменение переданного массива объектов в компоненту
                     //
                     // если они есть и изменились
@@ -61,19 +72,12 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                     props.objs.forEach((obj, index) => {
                         // то прикрепляем к карте
                         let objectToMap: any
-                        if (!obj.coords.length) {
-                            // если массив координат пустой
-                            // генерируем рандомные координаты
-                            // для тестовых целей!!
-                            // надо зарефакторить и оставить только в режиме дебага!
-                            generateCoords(obj)
-                        }
 
                         // точка, линия или многоугольник?
                         // под каждое значение 2gis предоставляет свой инструмент
                         // создания рендерящихся объектов
                         if (obj.itIs === 'point') {
-                            objectToMap = DG.marker(obj.coords[0]).addTo(map)
+                            objectToMap = DG.marker(obj.coords).addTo(map)
                         } else if (obj.itIs === 'line') {
                             objectToMap = DG.polyline(obj.coords).addTo(map)
                         } else if (obj.itIs === 'polygon') {

@@ -1,15 +1,32 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import styles from './App.module.scss';
 import {MapMain} from "./MapMain/MapMain";
-import {coordsType, objectType} from "./types";
-import test_objects from './data/test_objects.json'
+import {objectType} from "./types";
 import {EventEmitter} from "events";
+import {EditSideBar} from "./EditSideBar/EditSideBar";
 
+export const fakeObject: objectType = {
+    classOfObject: null,
+    square: 0,
+    coords: [],
+    telephone: '',
+    id: '-1',
+    name: '',
+    address: {
+        building: 0,
+        city: '',
+        office: 0,
+        street: '',
+    },
+    itIs: "point",
+    squareBorders: [],
+}
 
 function App() {
-    const [currentObject, setCurrentObject] = useState<null | objectType>(null)
+
+    const [currentObject, setCurrentObject] = useState<objectType>(fakeObject)
     const [editMode, setEditMode] = useState(true)
-    const [objectsSet, setObjectsSet] = useState([])
+    const [objectsSet, setObjectsSet] = useState<objectType[]>([])
     const emitter = useMemo(() => {
         return new EventEmitter()
     }, [])
@@ -21,6 +38,9 @@ function App() {
     const createObject = (obj: objectType) => {
         setCurrentObject(obj)
     }
+    const addObject = useCallback((obj: objectType) => {
+        setObjectsSet([...objectsSet, obj])
+    }, [objectsSet])
 
     return (
         <div className={styles.App}>
@@ -29,7 +49,7 @@ function App() {
                     <span className={styles.addSign}>Add</span>
                 </button>
                 {
-                    editMode && <EditSideBar emitter={emitter} object={null}/>
+                    editMode && <EditSideBar emitter={emitter} object={currentObject} addObject={addObject}/>
                 }
                 <MapMain objs={objectsSet}
                          editMode={editMode}
@@ -42,70 +62,3 @@ function App() {
 
 export default App;
 
-type EditSideBarPropsType = {
-    emitter: EventEmitter,
-    object: null | objectType,
-}
-
-export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) => {
-    console.log('from EditSideBar')
-    const [currentObject, setCurrentObject] = useState<null | Partial<objectType>>(null)
-
-    useEffect(() => {
-        // вешаем слушателя на сайдбар, следящего за
-        // созданием новых объектов через клик
-        // После закрытия сайдбара, слушатели удаляются
-        props.emitter.on('objectWasCreated', (coords: coordsType) => {
-            console.log(coords)
-            setCurrentObject({
-                coords: coords,
-                itIs: "point",
-            })
-        })
-        return () => {
-            props.emitter.removeAllListeners()
-        }
-    }, [props.emitter])
-
-    return (
-        <div className={styles.editSideBar}>
-            <div>
-                Click on the map first
-            </div>
-            <div>
-                Coords
-                <br/>
-
-                {
-                    //@ts-ignore
-                    currentObject && currentObject.coords[0]
-                }
-                <br/>
-                {
-                    //@ts-ignore
-                    currentObject && currentObject.coords[1]
-                }
-            </div>
-            <div>
-                Address
-                <br/>
-                <input disabled={!currentObject && true}/>
-            </div>
-            <div>
-                Entrance
-                <br/>
-                <input disabled={!currentObject && true}/>
-            </div>
-            <div>
-                Telephone
-                <br/>
-                <input disabled={!currentObject && true}/>
-            </div>
-            <div>
-                Add square
-                <br/>
-                <input disabled={!currentObject && true}/>
-            </div>
-        </div>
-    )
-})

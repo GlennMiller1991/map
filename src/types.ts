@@ -30,4 +30,4 @@ type latitudeType = number
 type longitudeType = number
 
 type itIsType = 'point' | 'line' | 'polygon'
-type objectClassType = 'office' | 'storage' | 'shop'
+type objectClassType = 'office' | 'storage' | 'shop' | null
