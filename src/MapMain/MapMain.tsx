@@ -2,25 +2,34 @@ import React, {useEffect, useRef, useState} from "react";
 import {drawingClassType, objectType} from "../types";
 import {getBounds} from "../utils/getBounds";
 import {v1} from "uuid";
+import EventEmitter from "events";
+import arrow from './../imgs/arrow.png';
 
 const DG = require('2gis-maps');
+const entrancePic = DG.icon({
+    iconUrl: arrow,
+    iconSize: [30, 30]
+});
 
 type MapMainProps = {
+    emitterMap: EventEmitter,
+    emitterSideBar: EventEmitter,
     objs: objectType[],
     editMode: boolean,
     createObject: (obj: objectType) => void,
     drawingClass: drawingClassType,
 }
 export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
+
         //state
         const [map, setMap] = useState(null)
-        console.log(props.drawingClass)
+
         // доступ к актуальным данным расположенных на карте объектов не через useState
         let currentObjectsOnMap = useRef<any[]>([])
         let currentEditMode = useRef<boolean>(props.editMode)
         let currentEditingObjectOnMap = useRef<any>(null)
         let currentDrawClass = useRef<drawingClassType>(props.drawingClass)
-        let currentEditingObject = useRef<objectType | null>(null)
+        let currentEntrance = useRef<any>(null)
 
         const createObj = (event: any, map: any) => {
             if (currentEditingObjectOnMap.current) {
@@ -28,7 +37,7 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
             }
             let latLng = [event.latlng.lat, event.latlng.lng]
             const marker = DG.marker([...latLng], {
-                draggable: true,
+                draggable: false,
             }).addTo(map);
             currentEditingObjectOnMap.current = marker
             currentObjectsOnMap.current.push(marker)
@@ -38,12 +47,7 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                 name: '',
                 id: v1(),
                 address: '',
-                //     {
-                //     building: 0,
-                //     city: '',
-                //     office: 0,
-                //     street: '',
-                // },
+                entranceCoords: null,
                 classOfObject: null,
                 square: '0',
                 squareBorders: [],
@@ -51,8 +55,16 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
             })
         }
         const createEntrance = (event: any, map: any) => {
-
+            if (currentEntrance.current) {
+                currentEntrance.current.removeFrom(map)
+            }
+            let latLng = [event.latlng.lat, event.latlng.lng]
+            let marker = DG.marker([...latLng], {icon: entrancePic, opacity: 0.6}).addTo(map);
+            currentObjectsOnMap.current.push(marker)
+            currentEntrance.current = marker
+            props.emitterMap.emit('entranceWasCreated', latLng)
         }
+
         useEffect(() => {
             // данная структура позволяет реакту отрисовывать только
             // контейнер карты, не пересоздавая саму карту даже при изменении стейта
@@ -90,7 +102,12 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                                 props.createObject(obj);
                             }
                         })
-                        newObjects[index] = objectToMap
+                        newObjects.push(objectToMap)
+                        if (obj.entranceCoords && obj.entranceCoords.length) {
+                            let latLng = obj.entranceCoords
+                            let marker = DG.marker(latLng, {icon: entrancePic, opacity: 0.6}).addTo(map);
+                            newObjects.push(marker)
+                        }
                     })
                     //@ts-ignore
                     // корректируем зум карты на основании актуальных координат
@@ -104,6 +121,18 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
         useEffect(() => {
             currentEditMode.current = props.editMode
         }, [props.editMode])
+        useEffect(() => {
+            currentDrawClass.current = props.drawingClass
+        }, [props.drawingClass])
+        useEffect(() => {
+            props.emitterSideBar.on('changeDrawMode', (drawMode: drawingClassType) => {
+                currentDrawClass.current = drawMode
+                console.log(currentDrawClass.current)
+            })
+            return () => {
+                props.emitterSideBar.removeAllListeners()
+            }
+        }, [props.emitterSideBar])
 
         return (
             <>

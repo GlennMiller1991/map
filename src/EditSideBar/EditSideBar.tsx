@@ -1,44 +1,39 @@
-import {drawingClassType, objectType} from "../types";
-import React, {useEffect, useRef, useState} from "react";
+import {coordsType, drawingClassType, objectType} from "../types";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import styles from "../App.module.scss";
 import EventEmitter from "events";
 
 type EditSideBarPropsType = {
-    emitter: EventEmitter,
+    emitterSideBar: EventEmitter,
+    emitterMap: EventEmitter,
     object: objectType,
     callback: (obj: objectType) => void,
     changeDrawMode: (draw_class: drawingClassType) => void,
 }
 export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) => {
-    console.log('from EditSideBar')
     const [currentObject, setCurrentObject] = useState<objectType>(props.object)
     let currentDrawMode = useRef<drawingClassType>('defaultTypes')
 
-    const updateObject = (obj: Partial<objectType>) => {
+    const updateObject = useCallback((obj: Partial<objectType>) => {
         setCurrentObject({...currentObject, ...obj})
-    }
-
+    }, [currentObject])
     const changeDrawMode = () => {
         const nextMode = currentDrawMode.current === 'defaultTypes' ? 'entrance' : 'defaultTypes'
         currentDrawMode.current = nextMode
-        props.changeDrawMode(nextMode)
+        props.emitterSideBar.emit('changeDrawMode', nextMode)
     }
 
     useEffect(() => {
-        props.emitter.addListener('updateEntrance', () => {
-
+        props.emitterMap.on('entranceWasCreated', (coords: coordsType) => {
+            updateObject({entranceCoords: coords})
         })
         return () => {
-            props.emitter.removeAllListeners()
+            props.emitterMap.removeAllListeners()
         }
-    }, [props.emitter])
-
-
+    }, [updateObject, props.emitterMap])
     useEffect(() => {
-        console.log(props.object)
         setCurrentObject(props.object)
     }, [props.object])
-
 
     return (
         <div className={styles.editSideBar}>
@@ -47,7 +42,8 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
             </div>
             <CustomInput text={'Название'} value={currentObject.name} keyName={'name'} callback={updateObject}/>
             <CustomInput text={'Адрес'} value={currentObject.address} keyName={'address'} callback={updateObject}/>
-            <CustomInput text={'Телефон'} value={currentObject.telephone} keyName={'telephone'} callback={updateObject}/>
+            <CustomInput text={'Телефон'} value={currentObject.telephone} keyName={'telephone'}
+                         callback={updateObject}/>
             <CustomInput text={'Площадь'} value={currentObject.square} keyName={'square'} callback={updateObject}/>
             <div>
                 Add square

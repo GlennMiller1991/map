@@ -9,6 +9,7 @@ export const fakeObject: objectType = {
     classOfObject: null,
     square: '0',
     coords: [],
+    entranceCoords: null,
     telephone: '',
     id: '-1',
     name: '',
@@ -19,14 +20,15 @@ export const fakeObject: objectType = {
 }
 
 function App() {
+    console.log('from App')
 
     //state
     const [currentObject, setCurrentObject] = useState<objectType>(fakeObject)
     const [editMode, setEditMode] = useState(false)
     const [objectsSet, setObjectsSet] = useState<objectType[]>([])
     const [drawingClass, setDrawingClass] = useState<drawingClassType>('entrance')
-    const emitter = useMemo(() => {
-        return new EventEmitter
+    const [emitterSideBar, emitterMap]  = useMemo(() => {
+        return [new EventEmitter(), new EventEmitter()]
     }, [])
 
     //callbacks
@@ -63,7 +65,9 @@ function App() {
                 </button>
                 {
                     editMode &&
-                    <EditSideBar object={currentObject}
+                    <EditSideBar emitterSideBar={emitterSideBar}
+                                 emitterMap={emitterMap}
+                                 object={currentObject}
                                  changeDrawMode={changeDrawMode}
                                  callback={
                                       objectsSet.find(object => object.id === currentObject.id) ?
@@ -71,7 +75,9 @@ function App() {
                                           addObject
                                   }/>
                 }
-                <MapMain drawingClass={drawingClass}
+                <MapMain emitterMap={emitterMap}
+                         emitterSideBar={emitterSideBar}
+                         drawingClass={drawingClass}
                          objs={objectsSet}
                          editMode={editMode}
                          createObject={createObject}/>

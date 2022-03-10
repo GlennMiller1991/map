@@ -7,7 +7,8 @@ export type objectType = {
     // позволяет объекту иметь любые другие неописанные
     // свойства любого типа со строковыми ключами
     id: string,
-    coords: coordsType
+    coords: coordsType,
+    entranceCoords: null | coordsType,
     itIs: itIsType,
     name: string,
     address: string, //addressType,
