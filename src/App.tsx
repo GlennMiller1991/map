@@ -1,8 +1,9 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import styles from './App.module.scss';
 import {MapMain} from "./MapMain/MapMain";
-import {objectType} from "./types";
+import {drawingClassType, objectType} from "./types";
 import {EditSideBar} from "./EditSideBar/EditSideBar";
+import EventEmitter from "events";
 
 export const fakeObject: objectType = {
     classOfObject: null,
@@ -23,6 +24,10 @@ function App() {
     const [currentObject, setCurrentObject] = useState<objectType>(fakeObject)
     const [editMode, setEditMode] = useState(false)
     const [objectsSet, setObjectsSet] = useState<objectType[]>([])
+    const [drawingClass, setDrawingClass] = useState<drawingClassType>('entrance')
+    const emitter = useMemo(() => {
+        return new EventEmitter
+    }, [])
 
     //callbacks
     const onClickHandler = () => {
@@ -31,6 +36,7 @@ function App() {
         } else {
             setCurrentObject(fakeObject)
         }
+        setDrawingClass("defaultTypes")
         setEditMode(!editMode)
     }
     const createObject = (obj: objectType) => {
@@ -44,6 +50,10 @@ function App() {
         onClickHandler()
         setObjectsSet(objectsSet.map((object) => object.id === obj.id ? obj : object))
     }
+    const changeDrawMode = useCallback((draw_class: drawingClassType) => {
+        setDrawingClass(draw_class)
+    }, [])
+
 
     return (
         <div className={styles.App}>
@@ -54,13 +64,15 @@ function App() {
                 {
                     editMode &&
                     <EditSideBar object={currentObject}
-                                  callback={
+                                 changeDrawMode={changeDrawMode}
+                                 callback={
                                       objectsSet.find(object => object.id === currentObject.id) ?
                                           updateObject :
                                           addObject
                                   }/>
                 }
-                <MapMain objs={objectsSet}
+                <MapMain drawingClass={drawingClass}
+                         objs={objectsSet}
                          editMode={editMode}
                          createObject={createObject}/>
             </div>

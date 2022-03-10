@@ -1,18 +1,39 @@
-import {objectType} from "../types";
-import React, {useEffect, useState} from "react";
+import {drawingClassType, objectType} from "../types";
+import React, {useEffect, useRef, useState} from "react";
 import styles from "../App.module.scss";
+import EventEmitter from "events";
 
 type EditSideBarPropsType = {
+    emitter: EventEmitter,
     object: objectType,
     callback: (obj: objectType) => void,
+    changeDrawMode: (draw_class: drawingClassType) => void,
 }
 export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) => {
     console.log('from EditSideBar')
     const [currentObject, setCurrentObject] = useState<objectType>(props.object)
+    let currentDrawMode = useRef<drawingClassType>('defaultTypes')
 
     const updateObject = (obj: Partial<objectType>) => {
         setCurrentObject({...currentObject, ...obj})
     }
+
+    const changeDrawMode = () => {
+        const nextMode = currentDrawMode.current === 'defaultTypes' ? 'entrance' : 'defaultTypes'
+        currentDrawMode.current = nextMode
+        props.changeDrawMode(nextMode)
+    }
+
+    useEffect(() => {
+        props.emitter.addListener('updateEntrance', () => {
+
+        })
+        return () => {
+            props.emitter.removeAllListeners()
+        }
+    }, [props.emitter])
+
+
     useEffect(() => {
         console.log(props.object)
         setCurrentObject(props.object)
@@ -29,15 +50,12 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
             <CustomInput text={'Телефон'} value={currentObject.telephone} keyName={'telephone'} callback={updateObject}/>
             <CustomInput text={'Площадь'} value={currentObject.square} keyName={'square'} callback={updateObject}/>
             <div>
-                Entrance
-                <br/>
-                <input disabled={currentObject.id === '-1'}/>
-            </div>
-
-            <div>
                 Add square
                 <br/>
                 <input disabled={currentObject.id === '-1'}/>
+            </div>
+            <div>
+                <button onClick={changeDrawMode}>Указать вход</button>
             </div>
             <button disabled={currentObject.id === '-1'}
                     onClick={() => props.callback(currentObject)}>

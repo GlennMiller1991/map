@@ -31,3 +31,4 @@ type longitudeType = number
 
 type itIsType = 'point' | 'line' | 'polygon'
 type objectClassType = 'office' | 'storage' | 'shop' | null
+export type drawingClassType = 'entrance' | 'defaultTypes'

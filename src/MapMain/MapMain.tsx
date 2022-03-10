@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from "react";
-import {objectType} from "../types";
+import {drawingClassType, objectType} from "../types";
 import {getBounds} from "../utils/getBounds";
 import {v1} from "uuid";
 
@@ -9,27 +9,28 @@ type MapMainProps = {
     objs: objectType[],
     editMode: boolean,
     createObject: (obj: objectType) => void,
+    drawingClass: drawingClassType,
 }
 export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
         //state
         const [map, setMap] = useState(null)
-
-
+        console.log(props.drawingClass)
         // доступ к актуальным данным расположенных на карте объектов не через useState
         let currentObjectsOnMap = useRef<any[]>([])
         let currentEditMode = useRef<boolean>(props.editMode)
-        let currentEditingObject = useRef<any>(null)
-
+        let currentEditingObjectOnMap = useRef<any>(null)
+        let currentDrawClass = useRef<drawingClassType>(props.drawingClass)
+        let currentEditingObject = useRef<objectType | null>(null)
 
         const createObj = (event: any, map: any) => {
-            if (currentEditingObject.current) {
-                currentEditingObject.current.removeFrom(map)
+            if (currentEditingObjectOnMap.current) {
+                currentEditingObjectOnMap.current.removeFrom(map)
             }
             let latLng = [event.latlng.lat, event.latlng.lng]
             const marker = DG.marker([...latLng], {
                 draggable: true,
             }).addTo(map);
-            currentEditingObject.current = marker
+            currentEditingObjectOnMap.current = marker
             currentObjectsOnMap.current.push(marker)
             props.createObject({
                 coords: latLng,
@@ -49,7 +50,9 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                 telephone: ''
             })
         }
+        const createEntrance = (event: any, map: any) => {
 
+        }
         useEffect(() => {
             // данная структура позволяет реакту отрисовывать только
             // контейнер карты, не пересоздавая саму карту даже при изменении стейта
@@ -118,7 +121,11 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                                  })
                                  mapElem.on('click', (event: any) => {
                                      if (currentEditMode.current) {
-                                         createObj(event, mapElem)
+                                         if (currentDrawClass.current === 'defaultTypes') {
+                                             createObj(event, mapElem)
+                                         } else {
+                                             createEntrance(event, mapElem)
+                                         }
                                      }
                                  })
                                  setMap(mapElem)
