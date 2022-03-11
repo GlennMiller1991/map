@@ -12,6 +12,7 @@ type EditSideBarPropsType = {
 }
 export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) => {
     const [currentObject, setCurrentObject] = useState<objectType>(props.object)
+    const [drawMode, setDrawMode] = useState<drawingClassType>('defaultTypes')
     const [isNew, setIsNew] = useState(props.isNew)
     let currentDrawMode = useRef<drawingClassType>('defaultTypes')
 
@@ -19,9 +20,14 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
         setCurrentObject({...currentObject, ...obj})
     }, [currentObject])
     const changeDrawMode = (mode: drawingClassType) => {
-        const nextMode = currentDrawMode.current === mode ? 'defaultTypes' : mode
-        currentDrawMode.current = nextMode
+        const nextMode = drawMode === mode ? 'defaultTypes' : mode
+        setDrawMode(nextMode)
         props.emitterSideBar.emit('changeDrawMode', nextMode)
+    }
+
+    //validators
+    const emailVal = (value: string) => {
+        return !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(value);
     }
 
     useEffect(() => {
@@ -40,38 +46,54 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
         }
     }, [updateObject, props.emitterMap])
     useEffect(() => {
-        currentDrawMode.current = 'defaultTypes'
-        props.emitterSideBar.emit('changeDrawMode', currentDrawMode.current)
+        setDrawMode('defaultTypes')
+        props.emitterSideBar.emit('changeDrawMode', 'defaultTypes')
         setCurrentObject(props.object)
-    }, [props.object])
+    }, [props.object, props.emitterSideBar])
 
     return (
         <div className={styles.editSideBar}>
             <div className={styles.container}>
                 {
                     isNew ?
-                        <div>Создать объект</div> :
-                        <div>Редактировать объект</div>
+                        <h3>Создать объект</h3> :
+                        <h3>Редактировать объект</h3>
                 }
 
-                {
-                    isNew &&
-                    <div>
-                        <button onClick={() => changeDrawMode('defaultTypes')}>Редактировать положение объекта</button>
-                    </div>
-                }
+                <div className={styles.controlContainer}>
+                    {
+                        isNew &&
 
-                <div>
-                    <button onClick={() => changeDrawMode('entrance')}>Указать вход</button>
-                </div>
-                <div>
-                    <button onClick={() => changeDrawMode("square")}>Указать территорию</button>
+                        <button className={`${styles.control} ${drawMode === 'defaultTypes' ?
+                                styles.active :
+                                ''}`}
+                                onClick={() => changeDrawMode('defaultTypes')}>
+                            POS
+                        </button>
+                    }
+
+                    <button className={`${styles.control} ${drawMode === 'entrance' ?
+                        styles.active :
+                        ''}`}
+                            onClick={() => changeDrawMode('entrance')}>
+                        ENT
+                    </button>
+                    <button className={`${styles.control} ${drawMode === 'square' ?
+                        styles.active :
+                        ''}`}
+                            onClick={() => changeDrawMode("square")}>
+                        SQU
+                    </button>
                 </div>
                 <CustomInput text={'Название'} value={currentObject.name} keyName={'name'} callback={updateObject}/>
                 <CustomInput text={'Адрес'} value={currentObject.address} keyName={'address'} callback={updateObject}/>
                 <CustomInput text={'Телефон'} value={currentObject.telephone} keyName={'telephone'}
                              callback={updateObject}/>
-                <CustomInput text={'Email'} value={currentObject.email} keyName={'email'} callback={updateObject}/>
+                <CustomInput text={'Email'}
+                             value={currentObject.email}
+                             keyName={'email'}
+                             callback={updateObject}
+                             validation={emailVal}/>
                 <CustomInput text={'Площадь'} value={currentObject.square} keyName={'square'} callback={updateObject}/>
                 <CustomSelect text={'Тип помещения'} value={currentObject.classOfObject} keyName={'classOfObject'}
                               callback={updateObject}/>
@@ -90,13 +112,23 @@ type CustomInputPropsType = {
     keyName: string,
     callback: (obj: Partial<objectType>) => void,
     validation?: (value: string) => boolean,
+    errorMsg?: string
 }
 export const CustomInput: React.FC<CustomInputPropsType> = React.memo((props) => {
     const [value, setValue] = useState(props.value)
+    const [error, setError] = useState(false)
+
+    const onValidationHandler = (value: string) => {
+        if (props.validation) {
+            let error = props.validation(value)
+            setError(error)
+            return error
+        }
+    }
     const onBlurHanlder = () => {
-        let res = true
-        if (props.validation) res = props.validation(value)
-        if (res) props.callback({[props.keyName]: value})
+        debugger
+        let error = onValidationHandler(value)
+        if (!error) props.callback({[props.keyName]: value})
     }
 
     useEffect(() => {
@@ -106,7 +138,8 @@ export const CustomInput: React.FC<CustomInputPropsType> = React.memo((props) =>
         <div>
             {props.text}
             <br/>
-            <input value={value}
+            <input style={error ? {border: '1px solid red'} : {}}
+                   value={value}
                    onChange={(event) => {
                        setValue(event.currentTarget.value)
                    }}
@@ -141,6 +174,7 @@ export const CustomSelect: React.FC<CustomSelectPropsType> = React.memo((props) 
             {props.text}
             <br/>
             <select value={value} onChange={onChangeHandler}>
+                <option value={undefined}>-</option>
                 <option value={'office'}>оффис</option>
                 <option value={'shop'}>магазин</option>
                 <option value={'storage'}>склад</option>
