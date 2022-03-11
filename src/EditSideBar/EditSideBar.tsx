@@ -15,7 +15,7 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
     const [currentObject, setCurrentObject] = useState<objectType>(props.object)
     const [drawMode, setDrawMode] = useState<drawingClassType>('defaultTypes')
     const [isNew, setIsNew] = useState(props.isNew)
-
+    console.log('from edit sidebar')
     const updateObject = useCallback((obj: Partial<objectType>) => {
         setCurrentObject({...currentObject, ...obj})
     }, [currentObject])
@@ -65,7 +65,8 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
                         <button className={`${styles.control} ${drawMode === 'defaultTypes' ?
                             styles.active :
                             ''}`}
-                                onClick={() => changeDrawMode('defaultTypes')}>
+                                onClick={() => changeDrawMode('defaultTypes')}
+                        >
                             POS
                         </button>
                     }
@@ -73,13 +74,15 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
                     <button className={`${styles.control} ${drawMode === 'entrance' ?
                         styles.active :
                         ''}`}
-                            onClick={() => changeDrawMode('entrance')}>
+                            onClick={() => changeDrawMode('entrance')}
+                            disabled={!currentObject.coords.length}>
                         ENT
                     </button>
                     <button className={`${styles.control} ${drawMode === 'square' ?
                         styles.active :
                         ''}`}
-                            onClick={() => changeDrawMode("square")}>
+                            onClick={() => changeDrawMode("square")}
+                            disabled={!currentObject.coords.length}>
                         SQU
                     </button>
                     <button className={styles.control}
@@ -88,19 +91,27 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
                     </button>
                 </div>
                 <div className={styles.inputsContainer}>
-                    <CustomInput text={'Название'} value={currentObject.name} keyName={'name'} callback={updateObject}/>
-                    <CustomInput text={'Адрес'} value={currentObject.address} keyName={'address'}
+                    <CustomInput disabled={!currentObject.coords.length}
+                                 text={'Название'}
+                                 value={currentObject.name}
+                                 keyName={'name'} callback={updateObject}/>
+                    <CustomInput disabled={!currentObject.coords.length}
+                                 text={'Адрес'} value={currentObject.address} keyName={'address'}
                                  callback={updateObject}/>
-                    <CustomInput text={'Телефон'} value={currentObject.telephone} keyName={'telephone'}
+                    <CustomInput disabled={!currentObject.coords.length}
+                                 text={'Телефон'} value={currentObject.telephone} keyName={'telephone'}
                                  callback={updateObject}/>
-                    <CustomInput text={'Email'}
+                    <CustomInput disabled={!currentObject.coords.length}
+                                 text={'Email'}
                                  value={currentObject.email}
                                  keyName={'email'}
                                  callback={updateObject}
                                  validation={emailVal}/>
-                    <CustomInput text={'Площадь'} value={currentObject.square} keyName={'square'}
+                    <CustomInput disabled={!currentObject.coords.length}
+                                 text={'Площадь'} value={currentObject.square}
+                                 keyName={'square'}
                                  callback={updateObject}/>
-                    <CustomSelect text={'Тип помещения'} value={currentObject.classOfObject} keyName={'classOfObject'}
+                    <CustomSelect text={'Тип помещения'} disabled={!currentObject.coords.length} value={currentObject.classOfObject} keyName={'classOfObject'}
                                   callback={updateObject}/>
                 </div>
                 <div>
@@ -121,7 +132,8 @@ type CustomInputPropsType = {
     keyName: string,
     callback: (obj: Partial<objectType>) => void,
     validation?: (value: string) => boolean,
-    errorMsg?: string
+    errorMsg?: string,
+    disabled: boolean,
 }
 export const CustomInput: React.FC<CustomInputPropsType> = React.memo((props) => {
     const [value, setValue] = useState(props.value)
@@ -149,7 +161,7 @@ export const CustomInput: React.FC<CustomInputPropsType> = React.memo((props) =>
                 {props.text}
             </div>
             <div className={styles.input}>
-                <input style={error ? {border: '1px solid red'} : {}}
+                <input disabled={props.disabled} style={error ? {border: '1px solid red'} : {}}
                        value={value}
                        onChange={(event) => {
                            setValue(event.currentTarget.value)
@@ -166,6 +178,7 @@ type CustomSelectPropsType = {
     value: objectClassType,
     keyName: string,
     callback: (obj: Partial<objectType>) => void,
+    disabled: boolean,
 }
 export const CustomSelect: React.FC<CustomSelectPropsType> = React.memo((props) => {
 
@@ -187,7 +200,7 @@ export const CustomSelect: React.FC<CustomSelectPropsType> = React.memo((props) 
                 {props.text}
             </div>
             <div className={styles.input}>
-                <select className={styles.select} value={value} onChange={onChangeHandler}>
+                <select disabled={props.disabled} className={styles.select} value={value} onChange={onChangeHandler}>
                     <option value={undefined}>прочее</option>
                     <option value={'office'}>оффис</option>
                     <option value={'shop'}>магазин</option>
