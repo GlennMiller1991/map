@@ -79,6 +79,7 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
             if (map) {
                 // если карта создана
                 if (currentObjectsOnMap.current.length) {
+                    debugger
                     // если есть объекты на карте - удалить
                     currentObjectsOnMap.current.forEach((marker) => {
                         marker.removeFrom(map)
@@ -90,7 +91,6 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                     // если они есть и изменились
                     let newObjects: any[] = []
                     props.objs.forEach((obj, index) => {
-                        debugger
                         // то прикрепляем к карте
                         let objectToMap: any
 
@@ -105,7 +105,6 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                             objectToMap = DG.polygon(obj.coords).addTo(map)
                         }
                         objectToMap.on('click', () => {
-                            debugger
                             if (currentSquare.current) {
                                 currentSquare.current.removeFrom(map)
                             }
@@ -169,7 +168,6 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                                      'zoom': 9
                                  })
                                  mapElem.on('click', (event: any) => {
-                                     console.log(currentDrawClass.current)
                                      if (currentEditMode.current) {
                                          if (currentDrawClass.current === 'defaultTypes') {
                                              createObj(event, mapElem)

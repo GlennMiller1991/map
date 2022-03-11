@@ -1,5 +1,5 @@
 import {coordsType, drawingClassType, objectClassType, objectType} from "../types";
-import React, {ChangeEvent, useCallback, useEffect, useRef, useState} from "react";
+import React, {ChangeEvent, useCallback, useEffect, useState} from "react";
 import styles from "../App.module.scss";
 import EventEmitter from "events";
 
@@ -9,12 +9,12 @@ type EditSideBarPropsType = {
     object: objectType,
     callback: (obj: objectType) => void,
     isNew: boolean,
+    deleteObject: (id: string) => void,
 }
 export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) => {
     const [currentObject, setCurrentObject] = useState<objectType>(props.object)
     const [drawMode, setDrawMode] = useState<drawingClassType>('defaultTypes')
     const [isNew, setIsNew] = useState(props.isNew)
-    let currentDrawMode = useRef<drawingClassType>('defaultTypes')
 
     const updateObject = useCallback((obj: Partial<objectType>) => {
         setCurrentObject({...currentObject, ...obj})
@@ -31,7 +31,6 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
     }
 
     useEffect(() => {
-        console.log(props.isNew)
         setIsNew(props.isNew)
     }, [props.isNew])
     useEffect(() => {
@@ -65,8 +64,8 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
                         isNew &&
 
                         <button className={`${styles.control} ${drawMode === 'defaultTypes' ?
-                                styles.active :
-                                ''}`}
+                            styles.active :
+                            ''}`}
                                 onClick={() => changeDrawMode('defaultTypes')}>
                             POS
                         </button>
@@ -84,6 +83,10 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
                             onClick={() => changeDrawMode("square")}>
                         SQU
                     </button>
+                    <button className={styles.control}
+                            onClick={() => props.deleteObject(currentObject.id)}>
+                        DEL
+                    </button>
                 </div>
                 <CustomInput text={'Название'} value={currentObject.name} keyName={'name'} callback={updateObject}/>
                 <CustomInput text={'Адрес'} value={currentObject.address} keyName={'address'} callback={updateObject}/>
@@ -97,10 +100,13 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
                 <CustomInput text={'Площадь'} value={currentObject.square} keyName={'square'} callback={updateObject}/>
                 <CustomSelect text={'Тип помещения'} value={currentObject.classOfObject} keyName={'classOfObject'}
                               callback={updateObject}/>
-                <button disabled={currentObject.id === '-1'}
-                        onClick={() => props.callback(currentObject)}>
-                    update object
-                </button>
+                <div>
+                    <button className={styles.updateBtn}
+                            disabled={currentObject.id === '-1'}
+                            onClick={() => props.callback(currentObject)}>
+                        {isNew ? 'Создать' : 'Редактировать'}
+                    </button>
+                </div>
             </div>
         </div>
     )

@@ -20,7 +20,6 @@ export const fakeObject: objectType = {
 }
 
 function App() {
-    console.log('from App')
 
     //state
     const [currentObject, setCurrentObject] = useState<objectType>(fakeObject)
@@ -50,6 +49,12 @@ function App() {
         onClickHandler()
         setObjectsSet(objectsSet.map((object) => object.id === obj.id ? obj : object))
     }
+    const deleteObject = (id: string) => {
+        debugger
+        const newObjectsSet = objectsSet.filter(object => object.id !== id)
+        setObjectsSet(newObjectsSet)
+        setEditMode(!editMode)
+    }
 
     return (
         <div className={styles.App}>
@@ -67,6 +72,7 @@ function App() {
                                          updateObject :
                                          addObject
                                  }
+                                 deleteObject={deleteObject}
                                  isNew={!objectsSet.find(object => object.id === currentObject.id)}/>
                 }
                 <MapMain emitterMap={emitterMap}
