@@ -37,25 +37,13 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                 currentEditingObjectOnMap.current.removeFrom(map)
             }
             let latLng = [event.latlng.lat, event.latlng.lng]
-            const marker = DG.marker([...latLng], {
-                draggable: false,
-            }).addTo(map);
+            const marker = DG.marker([...latLng]).addTo(map);
             currentEditingObjectOnMap.current = marker
             currentObjectsOnMap.current.push(marker)
             props.createObject({
                 ...fakeObject,
                 coords: latLng,
                 id: v1()
-                // coords: latLng,
-                // itIs: "point",
-                // name: '',
-                // id: v1(),
-                // address: '',
-                // entranceCoords: null,
-                // classOfObject: null,
-                // square: '0',
-                // squareBorders: [],
-                // telephone: ''
             })
         }
         const createEntrance = (event: any, map: any) => {
@@ -117,6 +105,16 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                             objectToMap = DG.polygon(obj.coords).addTo(map)
                         }
                         objectToMap.on('click', () => {
+                            debugger
+                            if (currentSquare.current) {
+                                currentSquare.current.removeFrom(map)
+                            }
+                            if (currentEntrance.current) {
+                                currentEntrance.current.removeFrom(map)
+                            }
+                            if (currentEditingObjectOnMap.current) {
+                                currentEditingObjectOnMap.current.removeFrom(map)
+                            }
                             if (currentEditMode) {
                                 props.createObject(obj);
                             }

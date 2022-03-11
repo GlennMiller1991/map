@@ -8,9 +8,11 @@ type EditSideBarPropsType = {
     emitterMap: EventEmitter,
     object: objectType,
     callback: (obj: objectType) => void,
+    isNew: boolean,
 }
 export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) => {
     const [currentObject, setCurrentObject] = useState<objectType>(props.object)
+    const [isNew, setIsNew] = useState(props.isNew)
     let currentDrawMode = useRef<drawingClassType>('defaultTypes')
 
     const updateObject = useCallback((obj: Partial<objectType>) => {
@@ -22,6 +24,10 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
         props.emitterSideBar.emit('changeDrawMode', nextMode)
     }
 
+    useEffect(() => {
+        console.log(props.isNew)
+        setIsNew(props.isNew)
+    }, [props.isNew])
     useEffect(() => {
         props.emitterMap.on('entranceWasCreated', (coords: coordsType) => {
             updateObject({entranceCoords: coords})
@@ -42,9 +48,19 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
     return (
         <div className={styles.editSideBar}>
             <div className={styles.container}>
-                <div>
-                    <button onClick={() => changeDrawMode('defaultTypes')}>Указать объект</button>
-                </div>
+                {
+                    isNew ?
+                        <div>Создать объект</div> :
+                        <div>Редактировать объект</div>
+                }
+
+                {
+                    isNew &&
+                    <div>
+                        <button onClick={() => changeDrawMode('defaultTypes')}>Редактировать положение объекта</button>
+                    </div>
+                }
+
                 <div>
                     <button onClick={() => changeDrawMode('entrance')}>Указать вход</button>
                 </div>
@@ -53,7 +69,8 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
                 </div>
                 <CustomInput text={'Название'} value={currentObject.name} keyName={'name'} callback={updateObject}/>
                 <CustomInput text={'Адрес'} value={currentObject.address} keyName={'address'} callback={updateObject}/>
-                <CustomInput text={'Телефон'} value={currentObject.telephone} keyName={'telephone'} callback={updateObject}/>
+                <CustomInput text={'Телефон'} value={currentObject.telephone} keyName={'telephone'}
+                             callback={updateObject}/>
                 <CustomInput text={'Email'} value={currentObject.email} keyName={'email'} callback={updateObject}/>
                 <CustomInput text={'Площадь'} value={currentObject.square} keyName={'square'} callback={updateObject}/>
                 <CustomSelect text={'Тип помещения'} value={currentObject.classOfObject} keyName={'classOfObject'}

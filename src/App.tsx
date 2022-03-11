@@ -26,7 +26,7 @@ function App() {
     const [currentObject, setCurrentObject] = useState<objectType>(fakeObject)
     const [editMode, setEditMode] = useState(false)
     const [objectsSet, setObjectsSet] = useState<objectType[]>([])
-    const [emitterSideBar, emitterMap]  = useMemo(() => {
+    const [emitterSideBar, emitterMap] = useMemo(() => {
         return [new EventEmitter(), new EventEmitter()]
     }, [])
 
@@ -63,10 +63,11 @@ function App() {
                                  emitterMap={emitterMap}
                                  object={currentObject}
                                  callback={
-                                      objectsSet.find(object => object.id === currentObject.id) ?
-                                          updateObject :
-                                          addObject
-                                  }/>
+                                     objectsSet.find(object => object.id === currentObject.id) ?
+                                         updateObject :
+                                         addObject
+                                 }
+                                 isNew={!objectsSet.find(object => object.id === currentObject.id)}/>
                 }
                 <MapMain emitterMap={emitterMap}
                          emitterSideBar={emitterSideBar}
