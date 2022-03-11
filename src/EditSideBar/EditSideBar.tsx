@@ -34,6 +34,8 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
         }
     }, [updateObject, props.emitterMap])
     useEffect(() => {
+        currentDrawMode.current = 'defaultTypes'
+        props.emitterSideBar.emit('changeDrawMode', currentDrawMode.current)
         setCurrentObject(props.object)
     }, [props.object])
 

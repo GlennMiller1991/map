@@ -143,12 +143,14 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
         useEffect(() => {
             props.emitterSideBar.on('changeDrawMode', (drawMode: drawingClassType) => {
                 currentDrawClass.current = drawMode
-                console.log(currentDrawClass.current)
+                if (drawMode === 'square' && currentSquare.current) {
+                    currentSquare.current = null
+                }
             })
             return () => {
                 props.emitterSideBar.removeAllListeners()
             }
-        }, [props.emitterSideBar])
+        }, [props.emitterSideBar, map])
 
         return (
             <>
@@ -165,6 +167,7 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                                      'zoom': 9
                                  })
                                  mapElem.on('click', (event: any) => {
+                                     console.log(currentDrawClass.current)
                                      if (currentEditMode.current) {
                                          if (currentDrawClass.current === 'defaultTypes') {
                                              createObj(event, mapElem)
