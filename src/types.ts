@@ -13,6 +13,7 @@ export type objectType = {
     name: string,
     address: string, //addressType,
     telephone: string,
+    email: string,
     square: string,
     squareBorders: coordsType,
     classOfObject: objectClassType,
@@ -31,5 +32,5 @@ type latitudeType = number
 type longitudeType = number
 
 type itIsType = 'point' | 'line' | 'polygon'
-type objectClassType = 'office' | 'storage' | 'shop' | null
+export type objectClassType = 'office' | 'storage' | 'shop' | undefined
 export type drawingClassType = 'entrance' | 'square' |'defaultTypes'

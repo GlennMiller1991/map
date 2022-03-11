@@ -4,6 +4,7 @@ import {getBounds} from "../utils/getBounds";
 import {v1} from "uuid";
 import EventEmitter from "events";
 import arrow from './../imgs/arrow.png';
+import {fakeObject} from "../App";
 
 const DG = require('2gis-maps');
 const entrancePic = DG.icon({
@@ -42,16 +43,19 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
             currentEditingObjectOnMap.current = marker
             currentObjectsOnMap.current.push(marker)
             props.createObject({
+                ...fakeObject,
                 coords: latLng,
-                itIs: "point",
-                name: '',
-                id: v1(),
-                address: '',
-                entranceCoords: null,
-                classOfObject: null,
-                square: '0',
-                squareBorders: [],
-                telephone: ''
+                id: v1()
+                // coords: latLng,
+                // itIs: "point",
+                // name: '',
+                // id: v1(),
+                // address: '',
+                // entranceCoords: null,
+                // classOfObject: null,
+                // square: '0',
+                // squareBorders: [],
+                // telephone: ''
             })
         }
         const createEntrance = (event: any, map: any) => {

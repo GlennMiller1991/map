@@ -6,15 +6,15 @@ import {EditSideBar} from "./EditSideBar/EditSideBar";
 import EventEmitter from "events";
 
 export const fakeObject: objectType = {
-    classOfObject: null,
-    square: '0',
+    classOfObject: undefined,
+    square: '',
     coords: [],
     entranceCoords: null,
     telephone: '',
+    email: '',
     id: '-1',
     name: '',
     address: '',
-
     itIs: "point",
     squareBorders: [],
 }
@@ -55,7 +55,7 @@ function App() {
         <div className={styles.App}>
             <div className={styles.mapContainer}>
                 <button className={styles.addControl} onClick={onClickHandler}>
-                    <span className={styles.addSign}>Add</span>
+                    <span className={styles.addSign}>Edit</span>
                 </button>
                 {
                     editMode &&

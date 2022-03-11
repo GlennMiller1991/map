@@ -1,5 +1,5 @@
-import {coordsType, drawingClassType, objectType} from "../types";
-import React, {useCallback, useEffect, useRef, useState} from "react";
+import {coordsType, drawingClassType, objectClassType, objectType} from "../types";
+import React, {ChangeEvent, useCallback, useEffect, useRef, useState} from "react";
 import styles from "../App.module.scss";
 import EventEmitter from "events";
 
@@ -53,15 +53,11 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
                 </div>
                 <CustomInput text={'Название'} value={currentObject.name} keyName={'name'} callback={updateObject}/>
                 <CustomInput text={'Адрес'} value={currentObject.address} keyName={'address'} callback={updateObject}/>
-                <CustomInput text={'Телефон'} value={currentObject.telephone} keyName={'telephone'}
-                             callback={updateObject}/>
+                <CustomInput text={'Телефон'} value={currentObject.telephone} keyName={'telephone'} callback={updateObject}/>
+                <CustomInput text={'Email'} value={currentObject.email} keyName={'email'} callback={updateObject}/>
                 <CustomInput text={'Площадь'} value={currentObject.square} keyName={'square'} callback={updateObject}/>
-                <div>
-                    Add square
-                    <br/>
-                    <input disabled={currentObject.id === '-1'}/>
-                </div>
-
+                <CustomSelect text={'Тип помещения'} value={currentObject.classOfObject} keyName={'classOfObject'}
+                              callback={updateObject}/>
                 <button disabled={currentObject.id === '-1'}
                         onClick={() => props.callback(currentObject)}>
                     update object
@@ -75,12 +71,15 @@ type CustomInputPropsType = {
     text: string,
     value: string,
     keyName: string,
-    callback: (obj: Partial<objectType>) => void
+    callback: (obj: Partial<objectType>) => void,
+    validation?: (value: string) => boolean,
 }
 export const CustomInput: React.FC<CustomInputPropsType> = React.memo((props) => {
     const [value, setValue] = useState(props.value)
     const onBlurHanlder = () => {
-        props.callback({[props.keyName]: value})
+        let res = true
+        if (props.validation) res = props.validation(value)
+        if (res) props.callback({[props.keyName]: value})
     }
 
     useEffect(() => {
@@ -96,6 +95,39 @@ export const CustomInput: React.FC<CustomInputPropsType> = React.memo((props) =>
                    }}
                    onBlur={onBlurHanlder}
             />
+        </div>
+    )
+})
+
+type CustomSelectPropsType = {
+    text: string,
+    value: objectClassType,
+    keyName: string,
+    callback: (obj: Partial<objectType>) => void,
+}
+export const CustomSelect: React.FC<CustomSelectPropsType> = React.memo((props) => {
+
+    const [value, setValue] = useState<objectClassType>(props.value)
+
+    const onChangeHandler = (event: ChangeEvent<HTMLSelectElement>) => {
+        props.callback({
+            [props.keyName]: event.currentTarget.value
+        })
+    }
+
+    useEffect(() => {
+        setValue(props.value)
+    }, [props.value])
+
+    return (
+        <div>
+            {props.text}
+            <br/>
+            <select value={value} onChange={onChangeHandler}>
+                <option value={'office'}>оффис</option>
+                <option value={'shop'}>магазин</option>
+                <option value={'storage'}>склад</option>
+            </select>
         </div>
     )
 })
