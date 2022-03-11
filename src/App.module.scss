@@ -23,19 +23,25 @@
     }
 
     .container {
-      padding: 15px 0 15px 20px;
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      left: 20px;
+      bottom: -20px;
+      height: 95%;
+      display: grid;
+      grid-template-rows: 60px 60px auto 50px;
 
-      & > * {
-        height: 50px;
-      }
       h3 {
         text-align: center;
         height: auto;
       }
+
       .controlContainer {
         display: flex;
         justify-content: space-evenly;
         align-items: center;
+
         .control {
           cursor: pointer;
           width: 50px;
@@ -44,10 +50,12 @@
           border-radius: 50%;
           color: #626161;
           font-weight: 600;
+
           &:hover {
             background-color: #fffefe;
             color: #2b2a29;
           }
+
           &:active {
             background-color: #a2f3a2;
             opacity: .6;
@@ -55,6 +63,37 @@
         }
       }
 
+      .inputsContainer {
+        padding: 10px 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+
+        .inputContainer {
+          display: flex;
+          flex-direction: column;
+          justify-content: space-evenly;
+          align-items: center;
+          width: 100%;
+          height: 60px;
+
+          .inputLabel {
+            text-align: center;
+          }
+
+          .input {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 80%;
+            input, select {
+              border-radius: 10px;
+              width: 80%;
+            }
+          }
+        }
+      }
     }
   }
 
@@ -97,9 +136,11 @@
   border-radius: 15px;
   color: #626161;
   font-weight: 600;
+
   &:disabled {
     opacity: .3;
   }
+
   &:active {
     background-color: #a2f3a2;
     opacity: .6;

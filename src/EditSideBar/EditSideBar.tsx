@@ -58,7 +58,6 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
                         <h3>Создать объект</h3> :
                         <h3>Редактировать объект</h3>
                 }
-
                 <div className={styles.controlContainer}>
                     {
                         isNew &&
@@ -88,18 +87,22 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
                         DEL
                     </button>
                 </div>
-                <CustomInput text={'Название'} value={currentObject.name} keyName={'name'} callback={updateObject}/>
-                <CustomInput text={'Адрес'} value={currentObject.address} keyName={'address'} callback={updateObject}/>
-                <CustomInput text={'Телефон'} value={currentObject.telephone} keyName={'telephone'}
-                             callback={updateObject}/>
-                <CustomInput text={'Email'}
-                             value={currentObject.email}
-                             keyName={'email'}
-                             callback={updateObject}
-                             validation={emailVal}/>
-                <CustomInput text={'Площадь'} value={currentObject.square} keyName={'square'} callback={updateObject}/>
-                <CustomSelect text={'Тип помещения'} value={currentObject.classOfObject} keyName={'classOfObject'}
-                              callback={updateObject}/>
+                <div className={styles.inputsContainer}>
+                    <CustomInput text={'Название'} value={currentObject.name} keyName={'name'} callback={updateObject}/>
+                    <CustomInput text={'Адрес'} value={currentObject.address} keyName={'address'}
+                                 callback={updateObject}/>
+                    <CustomInput text={'Телефон'} value={currentObject.telephone} keyName={'telephone'}
+                                 callback={updateObject}/>
+                    <CustomInput text={'Email'}
+                                 value={currentObject.email}
+                                 keyName={'email'}
+                                 callback={updateObject}
+                                 validation={emailVal}/>
+                    <CustomInput text={'Площадь'} value={currentObject.square} keyName={'square'}
+                                 callback={updateObject}/>
+                    <CustomSelect text={'Тип помещения'} value={currentObject.classOfObject} keyName={'classOfObject'}
+                                  callback={updateObject}/>
+                </div>
                 <div>
                     <button className={styles.updateBtn}
                             disabled={currentObject.id === '-1'}
@@ -141,16 +144,19 @@ export const CustomInput: React.FC<CustomInputPropsType> = React.memo((props) =>
         setValue(props.value)
     }, [props.value])
     return (
-        <div>
-            {props.text}
-            <br/>
-            <input style={error ? {border: '1px solid red'} : {}}
-                   value={value}
-                   onChange={(event) => {
-                       setValue(event.currentTarget.value)
-                   }}
-                   onBlur={onBlurHanlder}
-            />
+        <div className={styles.inputContainer}>
+            <div className={styles.inputLabel}>
+                {props.text}
+            </div>
+            <div className={styles.input}>
+                <input style={error ? {border: '1px solid red'} : {}}
+                       value={value}
+                       onChange={(event) => {
+                           setValue(event.currentTarget.value)
+                       }}
+                       onBlur={onBlurHanlder}
+                />
+            </div>
         </div>
     )
 })
@@ -176,15 +182,18 @@ export const CustomSelect: React.FC<CustomSelectPropsType> = React.memo((props) 
     }, [props.value])
 
     return (
-        <div>
-            {props.text}
-            <br/>
-            <select value={value} onChange={onChangeHandler}>
-                <option value={undefined}>-</option>
-                <option value={'office'}>оффис</option>
-                <option value={'shop'}>магазин</option>
-                <option value={'storage'}>склад</option>
-            </select>
+        <div className={styles.inputContainer}>
+            <div className={styles.inputLabel}>
+                {props.text}
+            </div>
+            <div className={styles.input}>
+                <select className={styles.select} value={value} onChange={onChangeHandler}>
+                    <option value={undefined}>прочее</option>
+                    <option value={'office'}>оффис</option>
+                    <option value={'shop'}>магазин</option>
+                    <option value={'storage'}>склад</option>
+                </select>
+            </div>
         </div>
     )
 })
