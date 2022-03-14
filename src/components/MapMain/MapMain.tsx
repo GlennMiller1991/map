@@ -43,12 +43,15 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
             doubleGisRestApi.getAddress(latLng as pointCoordsType)
                 .then((response: TSearchResponse) => {
                     let address = ''
+                    let name = ''
                     if (response.meta.code === 200) {
                         address = response.result.items[0].full_address_name ? response.result.items[0].full_address_name : ''
+                        name = response.result.items[0].name ? response.result.items[0].name : ''
                     }
                     props.createObject({
                         ...fakeObject,
                         address,
+                        name,
                         coords: latLng,
                         id: v1()
                     })

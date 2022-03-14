@@ -94,6 +94,7 @@
           }
 
           .input {
+            position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -105,6 +106,11 @@
             select {
               width: 82%;
               border: 2px solid #2f2f2f;
+            }
+            .suggestionsWrapper {
+              position: absolute;
+              top: 30px;
+              background-color: gray;
             }
           }
         }
@@ -161,3 +167,4 @@
     opacity: .6;
   }
 }
+

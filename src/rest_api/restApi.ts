@@ -1,6 +1,6 @@
 import {pointCoordsType} from "../types";
 import {coordsToString} from "../utils/coordsToString";
-import {secondVersionKey} from "./apiKeys";
+import {secondVersionKey, thirdVersionKey} from "./apiKeys";
 
 const DG = require('2gis-maps')
 
@@ -13,12 +13,41 @@ export const doubleGisRestApi = {
             data: {
                 key: secondVersionKey,
                 point: coordsToString(point),
-                region_id: '32',
                 type: 'building',
                 fields: 'items.adm_div,items.full_address_name',
             }
         })
     },
+    getSuggestion(search: string) {
+        return DG.ajax({
+            url: `${baseUrl}/3.0/suggests`,
+            data: {
+                key: thirdVersionKey,
+                q: search,
+                type: 'building,' +
+                    'street,' +
+                    'adm_div.district,' +
+                    'adm_div.district_area,' +
+                    'adm_div.district_area,' +
+                    'adm_div.city,' +
+                    'adm_div.country,' +
+                    'adm_div.region,' +
+                    'adm_div.living_area,' +
+                    'adm_div.division',
+                fields: 'items.full_address_name',
+            }
+        })
+    },
+    getCoords(id: string) {
+        return DG.ajax({
+            url: `${baseUrl}/2.0/geo/get`,
+            data: {
+                key: secondVersionKey,
+                id,
+                fields: 'items.geometry.centroid'
+            }
+        })
+    }
 }
 
 //types
@@ -37,8 +66,7 @@ export type TSearchResponse = {
         items: Array<TItems>,
     }
 }
-
-type TItems = {
+export type TItems = {
     name: string,
     full_name: string,
     id: string,
@@ -46,5 +74,4 @@ type TItems = {
     address_name?: string,
     full_address_name?: string,
 }
-
 type TSubtype = 'city' | 'district' | 'division'

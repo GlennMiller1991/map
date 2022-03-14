@@ -1,7 +1,11 @@
-import {coordsType, drawingClassType, objectClassType, objectType} from "../../types";
+import {coordsType, drawingClassType, objectType} from "../../types";
 import React, {ChangeEvent, useCallback, useEffect, useState} from "react";
 import styles from "../../App.module.scss";
 import EventEmitter from "events";
+import {doubleGisRestApi, TItems, TSearchResponse} from "../../rest_api/restApi";
+import {CustomSelect} from "./CustomSelect/CustomSelect";
+import {CustomInput} from "./CustomInput/CustomInput";
+import {getCoordsFromString} from "../../utils/getCoordsFromString";
 
 type EditSideBarPropsType = {
     emitterSideBar: EventEmitter,
@@ -15,6 +19,7 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
     const [currentObject, setCurrentObject] = useState<objectType>(props.object)
     const [drawMode, setDrawMode] = useState<drawingClassType>('defaultTypes')
     const [isNew, setIsNew] = useState(props.isNew)
+
     console.log('from edit sidebar')
     const updateObject = useCallback((obj: Partial<objectType>) => {
         setCurrentObject({...currentObject, ...obj})
@@ -30,6 +35,7 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
         return !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(value);
     }
 
+    //useEffects
     useEffect(() => {
         setIsNew(props.isNew)
     }, [props.isNew])
@@ -89,15 +95,22 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
                             onClick={() => props.deleteObject(currentObject.id)}>
                         DEL
                     </button>
+
                 </div>
                 <div className={styles.inputsContainer}>
                     <CustomInput disabled={!currentObject.coords.length}
                                  text={'Название'}
                                  value={currentObject.name}
                                  keyName={'name'} callback={updateObject}/>
-                    <CustomInput disabled={!currentObject.coords.length}
-                                 text={'Адрес'} value={currentObject.address} keyName={'address'}
-                                 callback={updateObject}/>
+                    <AddressInput text={'Адрес'}
+                                  value={currentObject.address}
+                                  keyName={'address'}
+                                  callback={updateObject}
+                                  disabled={false}/>
+                    {/*<CustomInput disabled={false}*/}
+                    {/*             onChangeHandler={onChangeAddressCallback}*/}
+                    {/*             text={'Адрес'} value={currentObject.address} keyName={'address'}*/}
+                    {/*             callback={updateObject}/>*/}
                     <CustomInput disabled={!currentObject.coords.length}
                                  text={'Телефон'} value={currentObject.telephone} keyName={'telephone'}
                                  callback={updateObject}/>
@@ -111,7 +124,8 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
                                  text={'Площадь'} value={currentObject.square}
                                  keyName={'square'}
                                  callback={updateObject}/>
-                    <CustomSelect text={'Тип помещения'} disabled={!currentObject.coords.length} value={currentObject.classOfObject} keyName={'classOfObject'}
+                    <CustomSelect text={'Тип помещения'} disabled={!currentObject.coords.length}
+                                  value={currentObject.classOfObject} keyName={'classOfObject'}
                                   callback={updateObject}/>
                 </div>
                 <div>
@@ -126,30 +140,51 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
     )
 })
 
-type CustomInputPropsType = {
+type TAddressInputProps = {
     text: string,
     value: string,
     keyName: string,
     callback: (obj: Partial<objectType>) => void,
-    validation?: (value: string) => boolean,
-    errorMsg?: string,
     disabled: boolean,
 }
-export const CustomInput: React.FC<CustomInputPropsType> = React.memo((props) => {
+export const AddressInput: React.FC<TAddressInputProps> = React.memo((props) => {
     const [value, setValue] = useState(props.value)
-    const [error, setError] = useState(false)
-
-    const onValidationHandler = (value: string) => {
-        if (props.validation) {
-            let error = props.validation(value)
-            setError(error)
-            return error
-        }
-    }
-    const onBlurHanlder = () => {
+    const [suggestions, setSuggestions] = useState<string[]>([])
+    const [showSuggestions, setShowSuggestions] = useState<boolean>(false)
+    console.log(suggestions)
+    const onBlurHandler = () => {
+        setShowSuggestions(false)
+        props.callback({[props.keyName]: value})
         debugger
-        let error = onValidationHandler(value)
-        if (!error) props.callback({[props.keyName]: value})
+        doubleGisRestApi.getSuggestion(suggestions[0])
+            .then((response: TSearchResponse) => {
+                if (response.meta.code === 200) {
+                    doubleGisRestApi.getCoords(response.result.items[0].id)
+                        .then((response: any) => {
+                            console.log(getCoordsFromString(response.result.items[0].geometry.centroid))
+                        })
+                } else {
+                    console.log(response)
+                }
+            })
+    }
+    const onChangeHandler = (event: ChangeEvent<HTMLInputElement>) => {
+        let value = event.currentTarget.value
+        doubleGisRestApi.getSuggestion(value)
+            .then((response: TSearchResponse) => {
+                if (response.meta.code === 200) {
+                    let results = response.result.items.map(object => {
+                        let result = object.full_address_name ? object.full_address_name :
+                            object.address_name ? object.address_name :
+                                object.name
+                        return result
+                    })
+                    setSuggestions(results)
+                } else {
+                    setSuggestions(['Нет совпадений'])
+                }
+            })
+        setValue(value)
     }
 
     useEffect(() => {
@@ -161,51 +196,14 @@ export const CustomInput: React.FC<CustomInputPropsType> = React.memo((props) =>
                 {props.text}
             </div>
             <div className={styles.input}>
-                <input disabled={props.disabled} style={error ? {border: '1px solid red'} : {}}
-                       value={value}
-                       onChange={(event) => {
-                           setValue(event.currentTarget.value)
+                <input disabled={props.disabled}
+                       onFocus={() => {
+                           setShowSuggestions(true)
                        }}
-                       onBlur={onBlurHanlder}
+                       value={value}
+                       onChange={onChangeHandler}
+                       onBlur={onBlurHandler}
                 />
-            </div>
-        </div>
-    )
-})
-
-type CustomSelectPropsType = {
-    text: string,
-    value: objectClassType,
-    keyName: string,
-    callback: (obj: Partial<objectType>) => void,
-    disabled: boolean,
-}
-export const CustomSelect: React.FC<CustomSelectPropsType> = React.memo((props) => {
-
-    const [value, setValue] = useState<objectClassType>(props.value)
-
-    const onChangeHandler = (event: ChangeEvent<HTMLSelectElement>) => {
-        props.callback({
-            [props.keyName]: event.currentTarget.value
-        })
-    }
-
-    useEffect(() => {
-        setValue(props.value)
-    }, [props.value])
-
-    return (
-        <div className={styles.inputContainer}>
-            <div className={styles.inputLabel}>
-                {props.text}
-            </div>
-            <div className={styles.input}>
-                <select disabled={props.disabled} className={styles.select} value={value} onChange={onChangeHandler}>
-                    <option value={undefined}>прочее</option>
-                    <option value={'office'}>оффис</option>
-                    <option value={'shop'}>магазин</option>
-                    <option value={'storage'}>склад</option>
-                </select>
             </div>
         </div>
     )
