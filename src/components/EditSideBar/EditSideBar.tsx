@@ -1,6 +1,6 @@
-import {coordsType, drawingClassType, objectClassType, objectType} from "../types";
+import {coordsType, drawingClassType, objectClassType, objectType} from "../../types";
 import React, {ChangeEvent, useCallback, useEffect, useState} from "react";
-import styles from "../App.module.scss";
+import styles from "../../App.module.scss";
 import EventEmitter from "events";
 
 type EditSideBarPropsType = {

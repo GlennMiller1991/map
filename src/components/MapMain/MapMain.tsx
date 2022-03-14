@@ -1,10 +1,11 @@
 import React, {useEffect, useRef, useState} from "react";
-import {drawingClassType, objectType} from "../types";
-import {getBounds} from "../utils/getBounds";
+import {drawingClassType, objectType, pointCoordsType} from "../../types";
+import {getBounds} from "../../utils/getBounds";
 import {v1} from "uuid";
 import EventEmitter from "events";
-import arrow from './../imgs/arrow.png';
-import {fakeObject} from "../App";
+import arrow from '../../imgs/arrow.png';
+import {fakeObject} from "../../App";
+import {doubleGisRestApi, TSearchResponse} from "../../rest_api/restApi";
 
 const DG = require('2gis-maps');
 const entrancePic = DG.icon({
@@ -24,6 +25,7 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
         //state
         const [map, setMap] = useState(null)
 
+
         // доступ к актуальным данным расположенных на карте объектов не через useState
         let currentObjectsOnMap = useRef<any[]>([])
         let currentEditMode = useRef<boolean>(props.editMode)
@@ -37,14 +39,25 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                 currentEditingObjectOnMap.current.removeFrom(map)
             }
             let latLng = [event.latlng.lat, event.latlng.lng]
+
+            doubleGisRestApi.getAddress(latLng as pointCoordsType)
+                .then((response: TSearchResponse) => {
+                    let address = ''
+                    if (response.meta.code === 200) {
+                        address = response.result.items[0].full_address_name ? response.result.items[0].full_address_name : ''
+                    }
+                    props.createObject({
+                        ...fakeObject,
+                        address,
+                        coords: latLng,
+                        id: v1()
+                    })
+                })
+
             const marker = DG.marker([...latLng]).addTo(map);
             currentEditingObjectOnMap.current = marker
             currentObjectsOnMap.current.push(marker)
-            props.createObject({
-                ...fakeObject,
-                coords: latLng,
-                id: v1()
-            })
+
         }
         const createEntrance = (event: any, map: any) => {
             if (currentEntrance.current) {
@@ -75,11 +88,9 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
         useEffect(() => {
             // данная структура позволяет реакту отрисовывать только
             // контейнер карты, не пересоздавая саму карту даже при изменении стейта
-
             if (map) {
                 // если карта создана
                 if (currentObjectsOnMap.current.length) {
-                    debugger
                     // если есть объекты на карте - удалить
                     currentObjectsOnMap.current.forEach((marker) => {
                         marker.removeFrom(map)
@@ -165,7 +176,7 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                                  let mapElem = DG.map('map', {
                                      // зум и центр тестовый, Москва
                                      'center': [55.754753, 37.620861],
-                                     'zoom': 9
+                                     'zoom': 9,
                                  })
                                  mapElem.on('click', (event: any) => {
                                      if (currentEditMode.current) {

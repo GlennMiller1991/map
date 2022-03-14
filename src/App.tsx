@@ -1,8 +1,8 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import styles from './App.module.scss';
-import {MapMain} from "./MapMain/MapMain";
+import {MapMain} from "./components/MapMain/MapMain";
 import {objectType} from "./types";
-import {EditSideBar} from "./EditSideBar/EditSideBar";
+import {EditSideBar} from "./components/EditSideBar/EditSideBar";
 import EventEmitter from "events";
 
 export const fakeObject: objectType = {
