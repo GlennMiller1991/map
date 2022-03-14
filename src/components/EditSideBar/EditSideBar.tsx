@@ -1,4 +1,4 @@
-import {coordsType, drawingClassType, objectType} from "../../types";
+import {coordsType, drawingClassType, objectType, pointCoordsType} from "../../types";
 import React, {ChangeEvent, useCallback, useEffect, useState} from "react";
 import styles from "../../App.module.scss";
 import EventEmitter from "events";
@@ -30,6 +30,9 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
         props.emitterSideBar.emit('changeDrawMode', nextMode)
     }
 
+    const setMarkerOnCoords = (coords: pointCoordsType) => {
+        props.emitterSideBar.emit('createMarker', coords)
+    }
     //validators
     const emailVal = (value: string) => {
         return !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(value);
@@ -102,7 +105,8 @@ export const EditSideBar: React.FC<EditSideBarPropsType> = React.memo((props) =>
                                  text={'Название'}
                                  value={currentObject.name}
                                  keyName={'name'} callback={updateObject}/>
-                    <AddressInput text={'Адрес'}
+                    <AddressInput setMarker={setMarkerOnCoords}
+                                  text={'Адрес'}
                                   value={currentObject.address}
                                   keyName={'address'}
                                   callback={updateObject}
@@ -146,6 +150,7 @@ type TAddressInputProps = {
     keyName: string,
     callback: (obj: Partial<objectType>) => void,
     disabled: boolean,
+    setMarker: (coords: pointCoordsType) => void,
 }
 export const AddressInput: React.FC<TAddressInputProps> = React.memo((props) => {
     const [value, setValue] = useState(props.value)
@@ -161,7 +166,7 @@ export const AddressInput: React.FC<TAddressInputProps> = React.memo((props) => 
                 if (response.meta.code === 200) {
                     doubleGisRestApi.getCoords(response.result.items[0].id)
                         .then((response: any) => {
-                            console.log(getCoordsFromString(response.result.items[0].geometry.centroid))
+                            props.setMarker(getCoordsFromString(response.result.items[0].geometry.centroid))
                         })
                 } else {
                     console.log(response)

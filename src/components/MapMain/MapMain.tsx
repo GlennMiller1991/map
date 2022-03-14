@@ -162,6 +162,9 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                     currentSquare.current = null
                 }
             })
+            props.emitterSideBar.on('createMarker', (coords: pointCoordsType) => {
+                createObj({latlng: {lat: coords[0], lng: coords[1]}}, map)
+            })
             return () => {
                 props.emitterSideBar.removeAllListeners()
             }
