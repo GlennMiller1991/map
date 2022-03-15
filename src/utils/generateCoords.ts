@@ -1,4 +1,4 @@
-import {objectType, pointCoordsType} from "../types";
+import {objectType, pointCoordsType} from "../misc/types";
 
 export const generateCoords = (obj: objectType) => {
     // функция-хелпер

@@ -1,6 +1,6 @@
 import React, {ChangeEvent, useEffect, useState} from "react";
 import styles from "../../../App.module.scss";
-import {objectType} from "../../../types";
+import {objectType} from "../../../misc/types";
 
 type CustomInputPropsType = {
     text: string,

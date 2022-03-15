@@ -1,4 +1,4 @@
-import {pointCoordsType} from "../types";
+import {pointCoordsType} from "../misc/types";
 
 export const getCoordsFromString = (coordsString: string): pointCoordsType => {
     // function parses string of type POINT(34.23234523 43.1234124)

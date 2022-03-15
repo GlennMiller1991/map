@@ -1,11 +1,12 @@
 import React, {useEffect, useRef, useState} from "react";
-import {drawingClassType, objectType, pointCoordsType} from "../../types";
+import {drawingClassType, objectType, pointCoordsType} from "../../misc/types";
 import {getBounds} from "../../utils/getBounds";
 import {v1} from "uuid";
 import EventEmitter from "events";
 import arrow from '../../imgs/arrow.png';
 import {fakeObject} from "../../App";
 import {doubleGisRestApi, TSearchResponse} from "../../rest_api/restApi";
+import {RESPONSE_NOT_FOUND, RESPONSE_SUCCESS} from "../../misc/constants";
 
 const DG = require('2gis-maps');
 const entrancePic = DG.icon({
@@ -13,18 +14,19 @@ const entrancePic = DG.icon({
     iconSize: [30, 30]
 });
 
-type MapMainProps = {
+type TMapMainProps = {
     emitterMap: EventEmitter,
     emitterSideBar: EventEmitter,
     objs: objectType[],
     editMode: boolean,
     createObject: (obj: objectType) => void,
+    setError: (error: string) => void,
+    error: string,
 }
-export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
+export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
 
         //state
         const [map, setMap] = useState(null)
-
 
         // доступ к актуальным данным расположенных на карте объектов не через useState
         let currentObjectsOnMap = useRef<any[]>([])
@@ -35,18 +37,27 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
         let currentSquare = useRef<any>(null)
 
         const createObj = (event: any, map: any) => {
+            //create object by click
+
             if (currentEditingObjectOnMap.current) {
+                // delete previous object from map
                 currentEditingObjectOnMap.current.removeFrom(map)
             }
             let latLng = [event.latlng.lat, event.latlng.lng]
 
             doubleGisRestApi.getAddress(latLng as pointCoordsType)
+                // get address by coords of click
+                // if code 200 (success) get full address name or address name or name
+                // else set error
                 .then((response: TSearchResponse) => {
                     let address = ''
                     let name = ''
-                    if (response.meta.code === 200) {
+                    if (response.meta.code === RESPONSE_SUCCESS) {
                         address = response.result.items[0].full_address_name ? response.result.items[0].full_address_name : ''
                         name = response.result.items[0].name ? response.result.items[0].name : ''
+                        props.setError('')
+                    } else {
+                        props.setError('Здание не найдено')
                     }
                     props.createObject({
                         ...fakeObject,
@@ -56,6 +67,7 @@ export const MapMain: React.FC<MapMainProps> = React.memo((props) => {
                         id: v1()
                     })
                 })
+
 
             const marker = DG.marker([...latLng]).addTo(map);
             currentEditingObjectOnMap.current = marker

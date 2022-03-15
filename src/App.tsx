@@ -1,9 +1,10 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import styles from './App.module.scss';
 import {MapMain} from "./components/MapMain/MapMain";
-import {objectType} from "./types";
+import {objectType} from "./misc/types";
 import {EditSideBar} from "./components/EditSideBar/EditSideBar";
 import EventEmitter from "events";
+import {ErrorMessage} from "./components/ErrorMessage/ErrorMessage";
 
 export const fakeObject: objectType = {
     classOfObject: undefined,
@@ -22,6 +23,7 @@ export const fakeObject: objectType = {
 function App() {
 
     //state
+    const [appError, setAppError] = useState<string>('')
     const [currentObject, setCurrentObject] = useState<objectType>(fakeObject)
     const [editMode, setEditMode] = useState(false)
     const [objectsSet, setObjectsSet] = useState<objectType[]>([])
@@ -30,6 +32,9 @@ function App() {
     }, [])
 
     //callbacks
+    const setError = useCallback((error: string) => {
+        setAppError(error)
+    }, [])
     const onClickHandler = () => {
         if (editMode) {
             setObjectsSet([...objectsSet])
@@ -73,14 +78,22 @@ function App() {
                                          addObject
                                  }
                                  deleteObject={deleteObject}
-                                 isNew={!objectsSet.find(object => object.id === currentObject.id)}/>
+                                 isNew={!objectsSet.find(object => object.id === currentObject.id)}
+                                 error={appError}
+                                 setError={setError}/>
                 }
                 <MapMain emitterMap={emitterMap}
                          emitterSideBar={emitterSideBar}
                          objs={objectsSet}
                          editMode={editMode}
-                         createObject={createObject}/>
+                         createObject={createObject}
+                         setError={setError}
+                         error={appError}/>
             </div>
+            {
+                appError &&
+                <ErrorMessage message={appError}/>
+            }
         </div>
     );
 }

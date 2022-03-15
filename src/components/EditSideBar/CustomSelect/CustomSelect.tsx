@@ -1,5 +1,5 @@
 import React, {ChangeEvent, useEffect, useState} from "react";
-import {objectClassType, objectType} from "../../../types";
+import {objectClassType, objectType} from "../../../misc/types";
 import styles from "../../../App.module.scss";
 
 type CustomSelectPropsType = {

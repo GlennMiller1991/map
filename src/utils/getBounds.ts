@@ -1,4 +1,4 @@
-import {coordsType, objectType} from "../types";
+import {coordsType, objectType} from "../misc/types";
 
 export const getBounds = (objs: objectType[]) => {
     // функция-хелпер
