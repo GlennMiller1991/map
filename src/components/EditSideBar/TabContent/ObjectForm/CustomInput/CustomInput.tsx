@@ -1,6 +1,6 @@
 import React, {ChangeEvent, useEffect, useState} from "react";
-import styles from "../../../App.module.scss";
-import {objectType} from "../../../misc/types";
+import styles from '../../../EditSideBar.module.scss';
+import {objectType} from "../../../../../misc/types";
 
 type CustomInputPropsType = {
     text: string,

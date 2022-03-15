@@ -1,9 +1,10 @@
 import React from "react";
 import styles from "../EditSideBar.module.scss";
-import {AddressInput} from "../AddressInput/AddressInput";
+import {AddressInput} from "./AddressInput/AddressInput";
 import {drawingClassType, objectType, pointCoordsType} from "../../../misc/types";
 import EventEmitter from "events";
-import {ObjectForm, TEditMode} from "../EditSideBar";
+import {TEditMode} from "../EditSideBar";
+import {ObjectForm} from "./ObjectForm/ObjectForm";
 
 export type TTabContentProps = {
     setMarkerOnCoords: (coords: pointCoordsType) => void,
@@ -15,6 +16,7 @@ export type TTabContentProps = {
     changeDrawMode: (value: drawingClassType) => void,
     createObject: (obj: objectType) => void,
     updateObject: (obj: Partial<objectType>) => void,
+    deleteObject: (id: string) => void,
 }
 export const TabContent: React.FC<TTabContentProps> = React.memo((props) => {
 
@@ -24,7 +26,7 @@ export const TabContent: React.FC<TTabContentProps> = React.memo((props) => {
                 <button className={`${styles.control} ${props.drawMode === 'position' ?
                     styles.active :
                     ''}`}
-                        disabled={props.editMode === 'update'}
+                        disabled={props.editMode === 'update' && props.currentObject.id === '-1'}
                         onClick={() => props.changeDrawMode('position')}>
                     POS
                 </button>
@@ -49,6 +51,10 @@ export const TabContent: React.FC<TTabContentProps> = React.memo((props) => {
                         disabled={!props.currentObject.coords.length /*|| !!props.error*/}>
                     SQU
                 </button>
+                <button className={styles.control}
+                        onClick={() => props.deleteObject(props.currentObject.id)}>
+                    DEL
+                </button>
             </div>
             <div className={styles.inputsContainer}>
                 {
@@ -61,13 +67,13 @@ export const TabContent: React.FC<TTabContentProps> = React.memo((props) => {
                     props.drawMode === 'naming' &&
                     <ObjectForm currentObject={props.currentObject} updateObject={props.updateObject}/>
                 }
-                <div>
-                    <button className={styles.updateBtn}
-                            disabled={props.currentObject.id === '-1' /*|| !!props.error*/}
-                            onClick={() => props.createObject(props.currentObject)}>
-                        {props.editMode === 'create' ? 'Создать' : 'Редактировать'}
-                    </button>
-                </div>
+            </div>
+            <div className={styles.updateBtnContainer}>
+                <button className={styles.updateBtn}
+                        disabled={props.currentObject.id === '-1' /*|| !!props.error*/}
+                        onClick={() => props.createObject(props.currentObject)}>
+                    {props.editMode === 'create' ? 'Создать' : 'Редактировать'}
+                </button>
             </div>
         </div>
     )

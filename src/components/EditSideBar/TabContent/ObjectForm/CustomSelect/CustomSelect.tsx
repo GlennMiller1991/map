@@ -1,6 +1,6 @@
 import React, {ChangeEvent, useEffect, useState} from "react";
-import {objectClassType, objectType} from "../../../misc/types";
-import styles from "../../../App.module.scss";
+import {objectClassType, objectType} from "../../../../../misc/types";
+import styles from "./../../../EditSideBar.module.scss";
 
 type CustomSelectPropsType = {
     text: string,

@@ -1,9 +1,9 @@
-import {objectType, pointCoordsType} from "../../../misc/types";
+import {objectType, pointCoordsType} from "../../../../misc/types";
 import React, {ChangeEvent, useEffect, useState} from "react";
-import {doubleGisRestApi, TSearchResponse} from "../../../rest_api/restApi";
-import {getCoordsFromString} from "../../../utils/getCoordsFromString";
-import styles from './../EditSideBar.module.scss'
-import {RESPONSE_SUCCESS} from "../../../misc/constants";
+import {doubleGisRestApi, TSearchResponse} from "../../../../rest_api/restApi";
+import {getCoordsFromString} from "../../../../utils/getCoordsFromString";
+import styles from '../../EditSideBar.module.scss'
+import {RESPONSE_SUCCESS} from "../../../../misc/constants";
 import {debug} from "util";
 
 type TAddressInputProps = {
@@ -62,6 +62,7 @@ export const AddressInput: React.FC<TAddressInputProps> = React.memo((props) => 
 
         useEffect(() => {
             setValue(props.value)
+            setSuggestions([])
         }, [props.value])
         return (
             <div className={styles.inputContainer}>

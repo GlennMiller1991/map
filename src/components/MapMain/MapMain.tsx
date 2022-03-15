@@ -66,6 +66,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
                             id: v1()
                         })
                     } else {
+                        props.createObject(fakeObject)
                         props.setError('Здание не найдено')
                     }
                 })
@@ -173,12 +174,14 @@ export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
             props.emitterSideBar.on('changeDrawMode', (drawMode: drawingClassType) => {
                 currentDrawClass.current = drawMode
                 if (drawMode === 'square' && currentSquare.current) {
+                    currentSquare.current.removeFrom(map)
                     currentSquare.current = null
                 }
             })
             props.emitterSideBar.on('createMarker', (coords: pointCoordsType) => {
                 createObj({latlng: {lat: coords[0], lng: coords[1]}}, map)
             })
+
             return () => {
                 props.emitterSideBar.removeAllListeners()
             }
