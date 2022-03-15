@@ -5,3 +5,6 @@ export const RESPONSE_FORBIDDEN = 403
 export const RESPONSE_NOT_FOUND = 404
 export const RESPONSE_TIMEOUT = 408
 export const RESPONSE_SERVER_ERROR = 500
+
+// event emitter messages
+export const CHANGE_DRAW_MODE = 'changeDrawMode'

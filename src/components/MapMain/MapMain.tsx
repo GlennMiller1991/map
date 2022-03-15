@@ -28,11 +28,13 @@ export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
         //state
         const [map, setMap] = useState(null)
 
+        console.log('from map main')
+
         // доступ к актуальным данным расположенных на карте объектов не через useState
         let currentObjectsOnMap = useRef<any[]>([])
         let currentEditMode = useRef<boolean>(props.editMode)
         let currentEditingObjectOnMap = useRef<any>(null)
-        let currentDrawClass = useRef<drawingClassType>("defaultTypes")
+        let currentDrawClass = useRef<drawingClassType>("nothing")
         let currentEntrance = useRef<any>(null)
         let currentSquare = useRef<any>(null)
 
@@ -56,16 +58,16 @@ export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
                         address = response.result.items[0].full_address_name ? response.result.items[0].full_address_name : ''
                         name = response.result.items[0].name ? response.result.items[0].name : ''
                         props.setError('')
+                        props.createObject({
+                            ...fakeObject,
+                            address,
+                            name,
+                            coords: latLng,
+                            id: v1()
+                        })
                     } else {
                         props.setError('Здание не найдено')
                     }
-                    props.createObject({
-                        ...fakeObject,
-                        address,
-                        name,
-                        coords: latLng,
-                        id: v1()
-                    })
                 })
 
 
@@ -197,8 +199,8 @@ export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
                                      'zoom': 9,
                                  })
                                  mapElem.on('click', (event: any) => {
-                                     if (currentEditMode.current) {
-                                         if (currentDrawClass.current === 'defaultTypes') {
+                                     if (currentEditMode.current && currentDrawClass.current && currentDrawClass.current !== 'nothing') {
+                                         if (currentDrawClass.current === 'position') {
                                              createObj(event, mapElem)
                                          } else if (currentDrawClass.current === 'entrance') {
                                              createEntrance(event, mapElem)

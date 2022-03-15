@@ -1,0 +1,148 @@
+.editSideBar {
+  opacity: .6;
+  width: 500px;
+  height: 80%;
+  margin: 50px 15px 20px 0;
+  border-radius: 30px;
+  position: absolute;
+  z-index: 666;
+  right: 0;
+  top: 0;
+  background-color: white;
+  border: 2px solid #2f2f2f;
+  box-shadow: 0 0 1px 1px;
+  transition: .5s;
+  @media screen and (max-width: 800px) {
+    width: 200px;
+  }
+
+  &:hover {
+    opacity: 1
+  }
+
+  .container {
+    position: absolute;
+    top: 15px;
+    right: 5%;
+    left: 5%;
+    bottom: -20px;
+    height: 95%;
+    display: grid;
+    grid-template-rows: 60px 60px auto 50px;
+    @media screen and (max-width: 800px) {
+      grid-template-rows: 60px auto auto 50px;
+    }
+    .tabsContainer {
+      display: flex;
+      justify-content: space-evenly;
+      align-items: center;
+      height: 50px;
+      .tab {
+        cursor: pointer;
+      }
+      .activeTab {
+        color: #cc0033;
+        transition: 1s;
+        transform: scale(1.2);
+      }
+    }
+    .tabContent {
+      .controlContainer {
+        display: flex;
+        justify-content: space-evenly;
+        align-items: center;
+        row-gap: 8px;
+        flex-wrap: wrap;
+
+        .control {
+          cursor: pointer;
+          width: 50px;
+          height: 50px;
+          border: 5px solid #2f2f2f;
+          border-radius: 50%;
+          color: #626161;
+          font-weight: 600;
+
+          &:hover {
+            background-color: #fffefe;
+            color: #2b2a29;
+          }
+
+          &:active {
+            background-color: #a2f3a2;
+            opacity: .6;
+          }
+          &:disabled {
+            opacity: .3;
+          }
+        }
+        .active {
+          background-color: #a2f3a2;
+          opacity: .6;
+          &:hover {
+            background-color: #a2f3a2;
+          }
+        }
+      }
+      .inputsContainer {
+        padding: 20px 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        .inputContainer {
+          display: grid;
+          grid-template-rows: 30px 60px 400px;
+          justify-items: center;
+          width: 100%;
+          height: 60px;
+          .inputLabel {
+            text-align: center;
+          }
+          .input {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            height: 50px;
+            input {
+              height: 30px;
+              outline: none;
+              -webkit-appearance: none;
+              width: 80%;
+              border: none;
+              font-family: "Arial Unicode MS", sans-serif;
+              font-size: 20px;
+              font-weight: 100;
+              border-bottom: 2px solid red;
+              &:focus {
+                border-bottom: 2px solid #a2f3a2;
+              }
+            }
+          }
+          .suggestionsContainer {
+            overflow-y: auto;
+            width: 90%;
+            font-size: 25px;
+            color: gray;
+            &::-webkit-scrollbar {
+              width: 3px;
+            }
+            &::-webkit-scrollbar-thumb {
+              background-color: #a2f3a2;
+            }
+            .suggestion {
+              padding-right: 5px;
+              padding-bottom: 5px;
+              border-bottom: 2px solid rgba(192, 109, 109, 0.4);
+              margin-bottom: 10px;
+              &:hover {
+                background-color: rgba(195, 246, 181, .4);
+                cursor: pointer;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

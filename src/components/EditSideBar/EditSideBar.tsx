@@ -1,11 +1,13 @@
-import {coordsType, drawingClassType, objectType, pointCoordsType} from "../../misc/types";
+import {drawingClassType, objectType, pointCoordsType} from "../../misc/types";
 import React, {useCallback, useEffect, useState} from "react";
-import styles from "../../App.module.scss";
 import EventEmitter from "events";
+import styles from './EditSideBar.module.scss'
+import {CHANGE_DRAW_MODE} from "../../misc/constants";
+import {TabContent} from "./TabContent/TabContent";
+import { CustomInput } from "./CustomInput/CustomInput";
 import {CustomSelect} from "./CustomSelect/CustomSelect";
-import {CustomInput} from "./CustomInput/CustomInput";
-import {AddressInput} from "./AddressInput/AddressInput";
-
+//import styles from "../../App.module.scss";
+export type TEditMode = 'create' | 'update'
 type TEditSideBarPropsType = {
     emitterSideBar: EventEmitter,
     emitterMap: EventEmitter,
@@ -15,137 +17,144 @@ type TEditSideBarPropsType = {
     deleteObject: (id: string) => void,
     error: string,
     setError: (error: string) => void,
+    rerenderFunction: () => void,
 }
 export const EditSideBar: React.FC<TEditSideBarPropsType> = React.memo((props) => {
-    console.log('from edit sidebar')
+    console.log('from editBar')
+    const sendDrawModeToMap = useCallback((value: drawingClassType) => {
+        props.emitterSideBar.emit(CHANGE_DRAW_MODE, value)
+    }, [props.emitterSideBar])
 
-    // state
+    const [editMode, setEditMode] = useState<'create' | 'update'>(() => {
+        sendDrawModeToMap('nothing')
+        return 'create'
+    })
+    const [drawMode, setDrawMode] = useState<drawingClassType>('nothing')
     const [currentObject, setCurrentObject] = useState<objectType>(props.object)
-    const [drawMode, setDrawMode] = useState<drawingClassType>('defaultTypes')
-    const [isNew, setIsNew] = useState(props.isNew)
+    const changeDrawMode = useCallback((mode: drawingClassType) => {
+        let nextMode: drawingClassType = mode === drawMode ? 'nothing' : mode
+        sendDrawModeToMap(nextMode)
+        setDrawMode(nextMode)
+    }, [drawMode, sendDrawModeToMap])
+    const changeEditMode = useCallback((value: 'create' | 'update') => {
+        sendDrawModeToMap('nothing')
+        setEditMode(value)
+        setDrawMode('nothing')
+        props.rerenderFunction()
+    }, [props.emitterSideBar, props.rerenderFunction])
 
+    const setMarkerOnCoords = useCallback((coords: pointCoordsType) => {
+        props.emitterSideBar.emit('createMarker', coords)
+    }, [props.emitterSideBar])
     const updateObject = useCallback((obj: Partial<objectType>) => {
         setCurrentObject({...currentObject, ...obj})
     }, [currentObject])
-    const changeDrawMode = (mode: drawingClassType) => {
-        const nextMode = drawMode === mode ? 'defaultTypes' : mode
-        setDrawMode(nextMode)
-        props.emitterSideBar.emit('changeDrawMode', nextMode)
-    }
-    const setMarkerOnCoords = (coords: pointCoordsType) => {
-        props.emitterSideBar.emit('createMarker', coords)
-    }
 
-    //validators
-    const emailVal = (value: string) => {
-        return !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(value);
-    }
+    // state
+    // const [currentObject, setCurrentObject] = useState<objectType>(props.object)
+    // const [isNew, setIsNew] = useState(props.isNew)
+    //
 
-    //useEffects
+    //
+    // //validators
+    // const emailVal = (value: string) => {
+    //     return !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i.test(value);
+    // }
+    //
+    // //useEffects
+    // useEffect(() => {
+    //     setIsNew(props.isNew)
+    // }, [props.isNew])
+    // useEffect(() => {
+    //     props.emitterMap.on('entranceWasCreated', (coords: coordsType) => {
+    //         updateObject({entranceCoords: coords})
+    //     })
+    //     props.emitterMap.on('squareWasCreated', (coords: coordsType) => {
+    //         updateObject({squareBorders: coords})
+    //     })
+    //     return () => {
+    //         props.emitterMap.removeAllListeners()
+    //     }
+    // }, [updateObject, props.emitterMap])
+    // useEffect(() => {
+    //     setDrawMode('defaultTypes')
+    //     props.emitterSideBar.emit('changeDrawMode', 'defaultTypes')
+    //     setCurrentObject(props.object)
+    // }, [props.object, props.emitterSideBar])
+    // useEffect(() => {
+    //     setCurrentObject(props.object)
+    // }, [props.object])
     useEffect(() => {
-        setIsNew(props.isNew)
-    }, [props.isNew])
-    useEffect(() => {
-        props.emitterMap.on('entranceWasCreated', (coords: coordsType) => {
-            updateObject({entranceCoords: coords})
-        })
-        props.emitterMap.on('squareWasCreated', (coords: coordsType) => {
-            updateObject({squareBorders: coords})
-        })
-        return () => {
-            props.emitterMap.removeAllListeners()
-        }
-    }, [updateObject, props.emitterMap])
-    useEffect(() => {
-        setDrawMode('defaultTypes')
-        props.emitterSideBar.emit('changeDrawMode', 'defaultTypes')
+        setEditMode(props.isNew ? 'create' : 'update')
+        setDrawMode('position')
         setCurrentObject(props.object)
-    }, [props.object, props.emitterSideBar])
-
+        if (props.isNew) {
+            sendDrawModeToMap('position')
+        } else {
+            sendDrawModeToMap('nothing')
+        }
+    }, [props.isNew, props.object, sendDrawModeToMap])
     return (
         <div className={styles.editSideBar}>
             <div className={styles.container}>
-                {
-                    isNew ?
-                        <h3>Создать объект</h3> :
-                        <h3>Редактировать объект</h3>
-                }
-                <div className={styles.controlContainer}>
-                    {
-                        isNew &&
-
-                        <button className={`${styles.control} ${drawMode === 'defaultTypes' ?
-                            styles.active :
-                            ''}`}
-                                onClick={() => changeDrawMode('defaultTypes')}
-                        >
-                            POS
-                        </button>
-                    }
-
-                    <button className={`${styles.control} ${drawMode === 'entrance' ?
-                        styles.active :
-                        ''}`}
-                            onClick={() => changeDrawMode('entrance')}
-                            disabled={!currentObject.coords.length || !!props.error}>
-                        ENT
-                    </button>
-                    <button className={`${styles.control} ${drawMode === 'square' ?
-                        styles.active :
-                        ''}`}
-                            onClick={() => changeDrawMode("square")}
-                            disabled={!currentObject.coords.length || !!props.error}>
-                        SQU
-                    </button>
-                    <button className={styles.control}
-                            onClick={() => props.deleteObject(currentObject.id)}>
-                        DEL
-                    </button>
-
+                <div className={styles.tabsContainer}>
+                    <div className={`${styles.tab} ${editMode === 'create' ? styles.activeTab : ''}`}
+                         onClick={() => changeEditMode('create')}>
+                        Создать
+                    </div>
+                    <div className={`${styles.tab} ${editMode === 'update' ? styles.activeTab : ''}`}
+                         onClick={() => changeEditMode('update')}>
+                        Редактировать
+                    </div>
                 </div>
-                <div className={styles.inputsContainer}>
-                    <CustomInput disabled={!currentObject.coords.length || !!props.error}
-                                 text={'Название'}
-                                 value={currentObject.name}
-                                 keyName={'name'} callback={updateObject}/>
-                    <AddressInput setMarker={setMarkerOnCoords}
-                                  text={'Адрес'}
-                                  value={currentObject.address}
-                                  keyName={'address'}
-                                  callback={updateObject}
-                                  disabled={false}
-                                  setError={props.setError}/>
-                    {/*<CustomInput disabled={false}*/}
-                    {/*             onChangeHandler={onChangeAddressCallback}*/}
-                    {/*             text={'Адрес'} value={currentObject.address} keyName={'address'}*/}
-                    {/*             callback={updateObject}/>*/}
-                    <CustomInput disabled={!currentObject.coords.length || !!props.error}
-                                 text={'Телефон'} value={currentObject.telephone} keyName={'telephone'}
-                                 callback={updateObject}/>
-                    <CustomInput disabled={!currentObject.coords.length || !!props.error}
-                                 text={'Email'}
-                                 value={currentObject.email}
-                                 keyName={'email'}
-                                 callback={updateObject}
-                                 validation={emailVal}/>
-                    <CustomInput disabled={!currentObject.coords.length || !!props.error}
-                                 text={'Площадь'} value={currentObject.square}
-                                 keyName={'square'}
-                                 callback={updateObject}/>
-                    <CustomSelect text={'Тип помещения'}
-                                  disabled={!currentObject.coords.length || !!props.error}
-                                  value={currentObject.classOfObject} keyName={'classOfObject'}
-                                  callback={updateObject}/>
-                </div>
-                <div>
-                    <button className={styles.updateBtn}
-                            disabled={currentObject.id === '-1' || !!props.error}
-                            onClick={() => props.callback(currentObject)}>
-                        {isNew ? 'Создать' : 'Редактировать'}
-                    </button>
-                </div>
+                <TabContent drawMode={drawMode}
+                            updateObject={updateObject}
+                            createObject={props.callback}
+                            setMarkerOnCoords={setMarkerOnCoords}
+                            changeDrawMode={changeDrawMode}
+                            currentObject={currentObject}
+                            sendDrawModeToMap={sendDrawModeToMap}
+                            editMode={editMode}
+                            emitterSideBar={props.emitterSideBar}/>
             </div>
         </div>
+        //             <button className={styles.control}
+        //                     onClick={() => props.deleteObject(currentObject.id)}>
+        //                 DEL
+        //             </button>
+        //         </div>
+        //     </div>
+        // </div>
     )
 })
 
+type TObjectFormProps = {
+    currentObject: objectType,
+    updateObject: (object: Partial<objectType>) => void,
+}
+export const ObjectForm: React.FC<TObjectFormProps> = React.memo((props) => {
+    return (
+        <React.Fragment>
+            <CustomInput disabled={!props.currentObject.coords.length}// || !!props.error}
+                         text={'Название'}
+                         value={props.currentObject.name}
+                         keyName={'name'} callback={props.updateObject}/>
+            <CustomInput disabled={!props.currentObject.coords.length}// || !!props.error}
+                         text={'Телефон'} value={props.currentObject.telephone} keyName={'telephone'}
+                         callback={props.updateObject}/>
+            <CustomInput disabled={!props.currentObject.coords.length}// || !!props.error}
+                         text={'Email'}
+                         value={props.currentObject.email}
+                         keyName={'email'}
+                         callback={props.updateObject}/>
+            <CustomInput disabled={!props.currentObject.coords.length}// || !!props.error}
+                         text={'Площадь'} value={props.currentObject.square}
+                         keyName={'square'}
+                         callback={props.updateObject}/>
+            <CustomSelect text={'Тип помещения'}
+                          disabled={!props.currentObject.coords.length}// || !!props.error}
+                          value={props.currentObject.classOfObject} keyName={'classOfObject'}
+                          callback={props.updateObject}/>
+        </React.Fragment>
+    )
+})

@@ -20,11 +20,15 @@ export const fakeObject: objectType = {
     squareBorders: [],
 }
 
+type TExtObjectType = objectType & {
+    delObject?: () => void,
+}
+
 function App() {
 
     //state
     const [appError, setAppError] = useState<string>('')
-    const [currentObject, setCurrentObject] = useState<objectType>(fakeObject)
+    const [currentObject, setCurrentObject] = useState<TExtObjectType>(fakeObject)
     const [editMode, setEditMode] = useState(false)
     const [objectsSet, setObjectsSet] = useState<objectType[]>([])
     const [emitterSideBar, emitterMap] = useMemo(() => {
@@ -32,6 +36,11 @@ function App() {
     }, [])
 
     //callbacks
+    const rerenderFunction = useCallback(() => {
+        setObjectsSet([...objectsSet])
+        setCurrentObject(fakeObject)
+        setAppError('')
+    }, [objectsSet])
     const setError = useCallback((error: string) => {
         setAppError(error)
     }, [])
@@ -77,6 +86,7 @@ function App() {
                                          updateObject :
                                          addObject
                                  }
+                                 rerenderFunction={rerenderFunction}
                                  deleteObject={deleteObject}
                                  isNew={!objectsSet.find(object => object.id === currentObject.id)}
                                  error={appError}
@@ -99,4 +109,3 @@ function App() {
 }
 
 export default App;
-

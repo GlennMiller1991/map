@@ -77,5 +77,8 @@ export type TItems = {
     subtype: TSubtype,
     address_name?: string,
     full_address_name?: string,
+    geometry: {
+        centroid: string,
+    }
 }
 type TSubtype = 'city' | 'district' | 'division'
