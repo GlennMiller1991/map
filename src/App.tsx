@@ -88,13 +88,13 @@ function App() {
             let error = err as DOMException
             switch(error.code) {
                 case EXCEPTION__FORBIDDEN:
-                    setAppError('Политика безопасности браузера не позволяет использовать хранилище')
+                    setAppError('Ошибка доступа')
                     break
                 case EXCEPTION__EXCEED_MEMORY:
-                    setAppError('Локальное хранилище заполнено')
+                    setAppError('Ошибка памяти')
                     break
                 default:
-                    setAppError('Что-то пошло не так. Команда разработчиков уже в курсе дела')
+                    setAppError('Ошибка записи')
             }
         }
     }, [])
@@ -117,13 +117,13 @@ function App() {
             let error = err as DOMException
             switch(error.code) {
                 case EXCEPTION__FORBIDDEN:
-                    setAppError('Политика безопасности браузера не позволяет использовать хранилище')
+                    setAppError('Ошибка доступа')
                     break
                 case EXCEPTION__EXCEED_MEMORY:
-                    setAppError('Локальное хранилище заполнено')
+                    setAppError('Ошибка памяти')
                     break
                 default:
-                    setAppError('Что-то пошло не так. Команда разработчиков уже в курсе дела')
+                    setAppError('Ошибка чтения данных')
             }
         }
     }, [])
