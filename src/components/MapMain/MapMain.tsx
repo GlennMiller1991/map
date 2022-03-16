@@ -1,5 +1,12 @@
 import React, {useEffect, useRef, useState} from "react";
-import {drawingClassType, objectType, pointCoordsType} from "../../misc/types";
+import {
+    drawingClassType,
+    objectType,
+    pointCoordsType,
+    TDragEndEvent,
+    TEditingObjectType,
+    TLatLng
+} from "../../misc/types";
 import {getBounds} from "../../utils/getBounds";
 import EventEmitter from "events";
 import arrow from '../../imgs/arrow.png';
@@ -18,7 +25,7 @@ type TMapMainProps = {
     emitterSideBar: EventEmitter,
     objs: objectType[],
     editMode: boolean,
-    createObject: (obj: objectType) => void,
+    createObject: (obj: TEditingObjectType) => void,
     setError: (error: string) => void,
     error: string,
 }
@@ -53,6 +60,17 @@ export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
                 .then((response: TSearchResponse) => {
 
                     if (response.meta.code === RESPONSE__SUCCESS) {
+
+                        const marker = DG.marker(latLng).addTo(map);
+                        currentEditingObjectOnMap.current = marker
+                        currentObjectsOnMap.current.push(marker)
+
+                        let makeMarkerDraggable = () => {
+                            DG.marker(latLng, {draggable: true}).addTo(map).on('dragend', (event: TDragEndEvent) => {
+                                return event.target.getLatLng()
+                            })
+
+                        }
                         let address: string
                         let name: string
                         let id: string
@@ -66,18 +84,13 @@ export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
                             address,
                             name,
                             id,
+                            makeMarkerDraggable,
                         })
                     } else {
                         props.createObject(fakeObject)
                         props.setError('Здание не найдено')
                     }
                 })
-
-
-            const marker = DG.marker([...latLng]).addTo(map);
-            currentEditingObjectOnMap.current = marker
-            currentObjectsOnMap.current.push(marker)
-
         }
         const createEntrance = (event: any, map: any) => {
             if (currentEntrance.current) {

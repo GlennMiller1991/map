@@ -20,6 +20,11 @@ export type objectType = {
     [keyName: string]: any,
 }
 
+export type TEditingObjectType = objectType & {
+    makeMarkerDraggable?: () => void,
+}
+
+
 export type addressType = {
     city: string,
     street: string,
@@ -34,3 +39,18 @@ type longitudeType = number
 type itIsType = 'point' | 'line' | 'polygon'
 export type objectClassType = 'office' | 'storage' | 'shop' | undefined
 export type drawingClassType = 'entrance' | 'square' |'position' | 'update' | 'nothing' | 'naming'
+
+// 2gis types
+export type TLatLng = {
+    lat: number,
+    lng: number,
+}
+
+export type TDragEndEventTarget = EventTarget & {
+    getLatLng: () => TLatLng,
+}
+export type TDragEndEvent = {
+    distance: number,
+    target: TDragEndEventTarget,
+    type: 'string',
+}

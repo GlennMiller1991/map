@@ -1,4 +1,4 @@
-import {coordsType, drawingClassType, objectType, pointCoordsType} from "../../misc/types";
+import {coordsType, drawingClassType, objectType, pointCoordsType, TEditingObjectType} from "../../misc/types";
 import React, {useCallback, useEffect, useState} from "react";
 import EventEmitter from "events";
 import styles from './EditSideBar.module.scss'
@@ -9,7 +9,7 @@ export type TEditMode = 'create' | 'update'
 type TEditSideBarPropsType = {
     emitterSideBar: EventEmitter,
     emitterMap: EventEmitter,
-    object: objectType,
+    object: TEditingObjectType,
     callback: (obj: objectType) => void,
     isNew: boolean,
     deleteObject: (id: string) => void,
@@ -28,7 +28,7 @@ export const EditSideBar: React.FC<TEditSideBarPropsType> = React.memo((props) =
         return 'create'
     })
     const [drawMode, setDrawMode] = useState<drawingClassType>('nothing')
-    const [currentObject, setCurrentObject] = useState<objectType>(props.object)
+    const [currentObject, setCurrentObject] = useState<TEditingObjectType>(props.object)
     const changeDrawMode = useCallback((mode: drawingClassType) => {
         let nextMode: drawingClassType = mode === drawMode ? 'nothing' : mode
         sendDrawModeToMap(nextMode)
@@ -77,6 +77,15 @@ export const EditSideBar: React.FC<TEditSideBarPropsType> = React.memo((props) =
 
     return (
         <div className={styles.editSideBar}>
+            <button onClick={() => {
+                if (currentObject.makeMarkerDraggable) {
+                    let coords = currentObject.makeMarkerDraggable()
+                    // updateObject({coords: [coords.lat, coords.lng]})
+                        console.log(coords)
+                }
+            }}>
+                drag
+            </button>
             <div className={styles.container}>
                 <div className={styles.tabsContainer}>
                     <div className={`${styles.tab} ${editMode === 'create' ? styles.activeTab : ''}`}

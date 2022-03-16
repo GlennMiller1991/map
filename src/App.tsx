@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import styles from './App.module.scss';
 import {MapMain} from "./components/MapMain/MapMain";
-import {objectType} from "./misc/types";
+import {objectType, TEditingObjectType} from "./misc/types";
 import {EditSideBar} from "./components/EditSideBar/EditSideBar";
 import EventEmitter from "events";
 import {ErrorMessage} from "./components/ErrorMessage/ErrorMessage";
@@ -21,15 +21,12 @@ export const fakeObject: objectType = {
     squareBorders: [],
 }
 
-type TExtObjectType = objectType & {
-    delObject?: () => void,
-}
 
 function App() {
 
     //state
     const [appError, setAppError] = useState<string>('')
-    const [currentObject, setCurrentObject] = useState<TExtObjectType>(fakeObject)
+    const [currentObject, setCurrentObject] = useState<TEditingObjectType>(fakeObject)
     const [editMode, setEditMode] = useState(false)
     const [objectsSet, setObjectsSet] = useState<objectType[]>([])
     const [emitterSideBar, emitterMap] = useMemo(() => {
@@ -53,7 +50,7 @@ function App() {
         }
         setEditMode(!editMode)
     }, [objectsSet, editMode])
-    const createObject = (obj: objectType) => {
+    const createObject = (obj: TEditingObjectType) => {
         setCurrentObject(obj)
     }
     const addObject = useCallback((obj: objectType) => {
