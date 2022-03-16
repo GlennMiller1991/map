@@ -10,6 +10,8 @@
   background-color: #fce4e4;
   border: 1px solid #fcc2c3;
   float: left;
+  animation: fade 5s;
+  animation-delay: 5s;
 }
 
 .errorText {
@@ -19,4 +21,13 @@
   font-weight: bold;
   line-height: 20px;
   text-shadow: 1px 1px rgba(250, 250, 250, .3);
+}
+
+@keyframes fade {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }

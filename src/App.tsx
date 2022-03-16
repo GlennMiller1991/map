@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import styles from './App.module.scss';
 import {MapMain} from "./components/MapMain/MapMain";
 import {objectType} from "./misc/types";
@@ -118,6 +118,17 @@ function App() {
         }
     }, [])
 
+    useEffect(() => {
+        const storageListener = () => {
+            setAppError('Данные изменились в другой вкладке')
+        }
+        window.addEventListener('storage', storageListener)
+        return () => {
+            console.log('hello')
+            window.removeEventListener('storage', storageListener)
+        }
+    }, [])
+
     return (
         <div className={styles.App}>
             <div className={styles.mapContainer}>
@@ -158,7 +169,7 @@ function App() {
             </div>
             {
                 appError &&
-                <ErrorMessage message={appError}/>
+                <ErrorMessage message={appError} removeMessage={setError}/>
             }
         </div>
     );
