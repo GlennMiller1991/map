@@ -3,7 +3,7 @@ import React, {ChangeEvent, useEffect, useState} from "react";
 import {doubleGisRestApi, TSearchResponse} from "../../../../rest_api/restApi";
 import {getCoordsFromString} from "../../../../utils/getCoordsFromString";
 import styles from '../../EditSideBar.module.scss'
-import {RESPONSE_SUCCESS} from "../../../../misc/constants";
+import {RESPONSE__SUCCESS} from "../../../../misc/constants";
 
 type TAddressInputProps = {
     value: string,
@@ -29,7 +29,7 @@ export const AddressInput: React.FC<TAddressInputProps> = React.memo((props) => 
                         // update current editing object
                         // get coords from info
                         // and then set marker on the map
-                        if (response.meta.code === RESPONSE_SUCCESS) {
+                        if (response.meta.code === RESPONSE__SUCCESS) {
                             props.setMarker(getCoordsFromString(response.result.items[0].geometry.centroid))
                         } else {
                             // props.setError('something went wrong')

@@ -5,6 +5,7 @@ import {objectType} from "./misc/types";
 import {EditSideBar} from "./components/EditSideBar/EditSideBar";
 import EventEmitter from "events";
 import {ErrorMessage} from "./components/ErrorMessage/ErrorMessage";
+import {EXCEPTION__EXCEED_MEMORY, EXCEPTION__FORBIDDEN} from "./misc/constants";
 
 export const fakeObject: objectType = {
     classOfObject: undefined,
@@ -85,12 +86,16 @@ function App() {
             })
         } catch (err) {
             let error = err as DOMException
-            if (error.code === 18) {
-                setAppError('Политика безопасности браузера не позволяет использовать хранилище')
-            } else {
-                setAppError('Что-то пошло не так. Команда разработчиков уже в курсе дела')
+            switch(error.code) {
+                case EXCEPTION__FORBIDDEN:
+                    setAppError('Политика безопасности браузера не позволяет использовать хранилище')
+                    break
+                case EXCEPTION__EXCEED_MEMORY:
+                    setAppError('Локальное хранилище заполнено')
+                    break
+                default:
+                    setAppError('Что-то пошло не так. Команда разработчиков уже в курсе дела')
             }
-
         }
     }, [])
     const loadFromLS = useCallback(() => {
@@ -110,10 +115,15 @@ function App() {
             setObjectsSet(objects)
         } catch(err) {
             let error = err as DOMException
-            if (error.code === 18) {
-                setAppError('Политика безопасности браузера не позволяет использовать хранилище')
-            } else {
-                setAppError('Что-то пошло не так. Команда разработчиков уже в курсе дела')
+            switch(error.code) {
+                case EXCEPTION__FORBIDDEN:
+                    setAppError('Политика безопасности браузера не позволяет использовать хранилище')
+                    break
+                case EXCEPTION__EXCEED_MEMORY:
+                    setAppError('Локальное хранилище заполнено')
+                    break
+                default:
+                    setAppError('Что-то пошло не так. Команда разработчиков уже в курсе дела')
             }
         }
     }, [])

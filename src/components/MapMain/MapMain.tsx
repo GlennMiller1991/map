@@ -5,7 +5,7 @@ import EventEmitter from "events";
 import arrow from '../../imgs/arrow.png';
 import {fakeObject} from "../../App";
 import {doubleGisRestApi, TSearchResponse} from "../../rest_api/restApi";
-import {RESPONSE_SUCCESS} from "../../misc/constants";
+import {RESPONSE__SUCCESS} from "../../misc/constants";
 
 const DG = require('2gis-maps');
 const entrancePic = DG.icon({
@@ -52,7 +52,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
                 // else set error
                 .then((response: TSearchResponse) => {
 
-                    if (response.meta.code === RESPONSE_SUCCESS) {
+                    if (response.meta.code === RESPONSE__SUCCESS) {
                         let address: string
                         let name: string
                         let id: string

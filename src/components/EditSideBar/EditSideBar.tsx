@@ -2,7 +2,7 @@ import {coordsType, drawingClassType, objectType, pointCoordsType} from "../../m
 import React, {useCallback, useEffect, useState} from "react";
 import EventEmitter from "events";
 import styles from './EditSideBar.module.scss'
-import {CHANGE_DRAW_MODE} from "../../misc/constants";
+import {EVENT__CHANGE_DRAW_MODE} from "../../misc/constants";
 import {TabContent} from "./TabContent/TabContent";
 
 export type TEditMode = 'create' | 'update'
@@ -20,7 +20,7 @@ type TEditSideBarPropsType = {
 export const EditSideBar: React.FC<TEditSideBarPropsType> = React.memo((props) => {
 
     const sendDrawModeToMap = useCallback((value: drawingClassType) => {
-        props.emitterSideBar.emit(CHANGE_DRAW_MODE, value)
+        props.emitterSideBar.emit(EVENT__CHANGE_DRAW_MODE, value)
     }, [props.emitterSideBar])
 
     const [editMode, setEditMode] = useState<'create' | 'update'>(() => {
