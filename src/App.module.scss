@@ -18,11 +18,24 @@
       background-color: #f5f5f5;
       color: #2b2a29;
     }
+    &:disabled {
+      opacity: .4;
+    }
 
     .addSign {
       font-weight: 600;
       font-size: 15px;
     }
+  }
+  .saveControl, .loadControl {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    top: 150px;
+    background-color: #f5f5f5;
+  }
+  .loadControl {
+    top: 210px;
   }
 }
 

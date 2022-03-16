@@ -1,12 +1,11 @@
 import React, {useEffect, useRef, useState} from "react";
 import {drawingClassType, objectType, pointCoordsType} from "../../misc/types";
 import {getBounds} from "../../utils/getBounds";
-import {v1} from "uuid";
 import EventEmitter from "events";
 import arrow from '../../imgs/arrow.png';
 import {fakeObject} from "../../App";
 import {doubleGisRestApi, TSearchResponse} from "../../rest_api/restApi";
-import {RESPONSE_NOT_FOUND, RESPONSE_SUCCESS} from "../../misc/constants";
+import {RESPONSE_SUCCESS} from "../../misc/constants";
 
 const DG = require('2gis-maps');
 const entrancePic = DG.icon({
@@ -52,18 +51,21 @@ export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
                 // if code 200 (success) get full address name or address name or name
                 // else set error
                 .then((response: TSearchResponse) => {
-                    let address = ''
-                    let name = ''
+
                     if (response.meta.code === RESPONSE_SUCCESS) {
+                        let address: string
+                        let name: string
+                        let id: string
                         address = response.result.items[0].full_address_name ? response.result.items[0].full_address_name : ''
                         name = response.result.items[0].name ? response.result.items[0].name : ''
+                        id = response.result.items[0].id
                         props.setError('')
                         props.createObject({
                             ...fakeObject,
+                            coords: latLng,
                             address,
                             name,
-                            coords: latLng,
-                            id: v1()
+                            id,
                         })
                     } else {
                         props.createObject(fakeObject)
@@ -119,7 +121,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
                     //
                     // если они есть и изменились
                     let newObjects: any[] = []
-                    props.objs.forEach((obj, index) => {
+                    props.objs.forEach((obj) => {
                         // то прикрепляем к карте
                         let objectToMap: any
 

@@ -4,7 +4,6 @@ import {doubleGisRestApi, TSearchResponse} from "../../../../rest_api/restApi";
 import {getCoordsFromString} from "../../../../utils/getCoordsFromString";
 import styles from '../../EditSideBar.module.scss'
 import {RESPONSE_SUCCESS} from "../../../../misc/constants";
-import {debug} from "util";
 
 type TAddressInputProps = {
     value: string,
@@ -67,7 +66,7 @@ export const AddressInput: React.FC<TAddressInputProps> = React.memo((props) => 
         return (
             <div className={styles.inputContainer}>
                 <div className={styles.inputLabel}>
-                    Адресс
+                    Адрес
                 </div>
                 <div className={styles.input}>
                     <input autoFocus

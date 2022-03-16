@@ -44,14 +44,14 @@ function App() {
     const setError = useCallback((error: string) => {
         setAppError(error)
     }, [])
-    const onClickHandler = () => {
+    const onClickHandler = useCallback(() => {
         if (editMode) {
             setObjectsSet([...objectsSet])
         } else {
             setCurrentObject(fakeObject)
         }
         setEditMode(!editMode)
-    }
+    }, [objectsSet, editMode])
     const createObject = (obj: objectType) => {
         setCurrentObject(obj)
     }
@@ -69,12 +69,68 @@ function App() {
         setObjectsSet(newObjectsSet)
         setEditMode(!editMode)
     }
+    const saveToLS = useCallback((objectsSet: objectType[]) => {
+        // Function reflects current objects set in state on localstorage.
+        // So can delete all local storage data if call it with empty objects array.
+        // Objects is stored by 2gis id of object
+        //
+        // 1. clear local storage
+        // 2. save all objects from state
+        //
+        // set error if browser does not allow to save to local storage
+        try {
+            localStorage.clear()
+            objectsSet.forEach((object) => {
+                localStorage.setItem(object.id, JSON.stringify(object))
+            })
+        } catch (err) {
+            let error = err as DOMException
+            if (error.code === 18) {
+                setAppError('Политика безопасности браузера не позволяет использовать хранилище')
+            } else {
+                setAppError('Что-то пошло не так. Команда разработчиков уже в курсе дела')
+            }
+
+        }
+    }, [])
+    const loadFromLS = useCallback(() => {
+        // load object from ls with deleting all current objects in state
+        // set error if browser does not allow to save to local storage
+        try {
+            let objects: Array<objectType> = []
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i)
+                if (key) {
+                    let object = localStorage.getItem(key)
+                    if (object) {
+                        objects[i] = JSON.parse(object) as objectType
+                    }
+                }
+            }
+            setObjectsSet(objects)
+        } catch(err) {
+            let error = err as DOMException
+            if (error.code === 18) {
+                setAppError('Политика безопасности браузера не позволяет использовать хранилище')
+            } else {
+                setAppError('Что-то пошло не так. Команда разработчиков уже в курсе дела')
+            }
+        }
+    }, [])
 
     return (
         <div className={styles.App}>
             <div className={styles.mapContainer}>
                 <button className={styles.addControl} onClick={onClickHandler}>
                     <span className={styles.addSign}>Edit</span>
+                </button>
+                <button className={styles.addControl + ' ' + styles.saveControl}
+                        onClick={() => saveToLS(objectsSet)}>
+                    <span className={styles.addSign}>Save</span>
+                </button>
+                <button className={styles.addControl + ' ' + styles.loadControl}
+                        onClick={loadFromLS}>
+                    <span className={styles.addSign}>Load</span>
                 </button>
                 {
                     editMode &&
