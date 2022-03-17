@@ -9,7 +9,7 @@ import React, {useCallback, useEffect, useState} from "react";
 import EventEmitter from "events";
 import styles from './EditSideBar.module.scss'
 import {
-    EVENT__CHANGE_DRAW_MODE, EVENT__CHANGE_EDIT_MODE,
+    EVENT__CHANGE_DRAW_MODE, EVENT__CHANGE_EDIT_MODE, EVENT__CREATE_MARKER,
     EVENT__REFRESH_OBJECT_PROPERTIES
 } from "../../misc/constants";
 import {TabContent} from "./TabContent/TabContent";
@@ -36,6 +36,7 @@ export const EditSideBar: React.FC<TEditSideBarPropsType> = React.memo((props) =
     // state
     // new object or old
     const [editMode, setEditMode] = useState<TEditSideBarEditMode>(() => {
+        // this function will be executed only on first render
         sendDrawModeToMap('nothing')
         return 'create'
     })
@@ -51,10 +52,9 @@ export const EditSideBar: React.FC<TEditSideBarPropsType> = React.memo((props) =
         // switch on if first click on button
         // switch off if second click on button
         // then send value to map event emitter and change on it here
-        //
-        // sendToMap and setDrawMode almost always is the same
-        // except update edit mode when position changing by another way
         let nextMode: drawingClassType = mode === drawMode ? 'nothing' : mode
+
+        // additional function within changing draw mode
         callback && callback(nextMode)
         if (nextMode === "position" && editMode === 'update') {
             sendDrawModeToMap('nothing')
@@ -64,8 +64,9 @@ export const EditSideBar: React.FC<TEditSideBarPropsType> = React.memo((props) =
         setDrawMode(nextMode)
     }, [drawMode, sendDrawModeToMap])
     const changeEditMode = useCallback((value: TEditSideBarEditMode) => {
-        // switching edit mode with side effects
-
+        // switching edit mode here and in map component
+        // then rerender
+        // each changing of edit mode must be executed with rerender
         if (value === 'create') {
             sendDrawModeToMap('position')
             setDrawMode('position')
@@ -76,25 +77,30 @@ export const EditSideBar: React.FC<TEditSideBarPropsType> = React.memo((props) =
         setEditMode(value)
         props.rerenderFunction()
     }, [props.emitterSideBar, props.rerenderFunction, sendDrawModeToMap])
-
-    const setMarkerOnCoords = useCallback((coords: pointCoordsType) => {
-        props.emitterSideBar.emit('createMarker', coords)
-    }, [props.emitterSideBar])
     const updateObject = useCallback((obj: Partial<objectType>) => {
+        // merge changed properties of object
         setCurrentObject({...currentObject, ...obj})
     }, [currentObject])
+    const setMarkerOnCoords = useCallback((coords: pointCoordsType) => {
+        // get address from user then get its coords then set marker
+        props.emitterSideBar.emit(EVENT__CREATE_MARKER, coords)
+    }, [props.emitterSideBar])
 
-
+    // use effects
     useEffect(() => {
+        // add event listener on emitter
+        // if event then update object here
         props.emitterMap.on(EVENT__REFRESH_OBJECT_PROPERTIES, (obj: Partial<objectType>) => {
             updateObject(obj)
-            console.log(obj)
         })
         return () => {
+            // delete event listeners if component just has died
             props.emitterMap.removeAllListeners()
         }
     }, [updateObject, props.emitterMap])
     useEffect(() => {
+        // if new object or new edit mode
+        // although if new edit mode then and new object too
         let newEditMode: TEditSideBarEditMode = props.isNew ? 'create' : 'update'
         setEditMode(newEditMode)
 
@@ -108,6 +114,10 @@ export const EditSideBar: React.FC<TEditSideBarPropsType> = React.memo((props) =
         setCurrentObject(props.object)
     }, [props.isNew, props.object, sendDrawModeToMap])
     useEffect(() => {
+        // concept is
+        // if edit mode (here or in app component) is changing
+        // then delete all unsaved objects from map
+        // so here when edit mode is changing we send message to emitter in map 'delete all unsaved objects'
         props.emitterSideBar.emit(EVENT__CHANGE_EDIT_MODE)
     }, [props.emitterSideBar, editMode])
 
