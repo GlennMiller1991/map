@@ -91,6 +91,7 @@ function App() {
         })
         setObjectsSet(newObjectSet)
         setEditMode(!editMode)
+        debugger
     }, [onClickHandler, objectsSet, currentObject])
     const deleteObject = useCallback((id: string) => {
         // filter objectsSet by id

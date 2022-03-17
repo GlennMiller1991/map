@@ -12,6 +12,7 @@ import arrow from '../../imgs/arrow.png';
 import {fakeObject} from "../../App";
 import {doubleGisRestApi, TSearchResponse} from "../../rest_api/restApi";
 import {
+    EVENT__CHANGE_DRAW_MODE, EVENT__CHANGE_EDIT_MODE,
     EVENT__REFRESH_OBJECT_PROPERTIES,
     RESPONSE__SUCCESS
 } from "../../misc/constants";
@@ -44,7 +45,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
         let currentDrawClass = useRef<drawingClassType>("nothing")
         let currentEntrance = useRef<any>(null)
         let currentSquare = useRef<any>(null)
-        let EditingObjectMarkerPosition = useRef<any>(null)
+        let currentEditingObjectMarkerPosition = useRef<any>(null)
 
         const createObj = (event: any, map: any) => {
             //create object by click
@@ -102,7 +103,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
                 props.emitterMap.emit(
                     EVENT__REFRESH_OBJECT_PROPERTIES,
                     {
-                        squareCoords: currentSquare.current.getLatLngs()[0].map((coords: any) => [coords.lat, coords.lng]),
+                        squareBorders: currentSquare.current.getLatLngs()[0].map((coords: any) => [coords.lat, coords.lng]),
                     }
                 )
             } else {
@@ -148,13 +149,23 @@ export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
                                 if (currentEditingObjectOnMap.current) {
                                     currentEditingObjectOnMap.current.removeFrom(map)
                                 }
-                                if (currentEditMode) {
+                                if (currentEditMode.current) {
                                     const changeMarkerDraggableMode = (draggable: boolean) => {
+                                        objectToMap?.removeFrom(map)
                                         if (draggable) {
-                                            objectToMap.removeFrom(map)
-                                            let newMarker = DG.marker(obj.coords, {
-                                                draggable,
-                                            }).addTo(map)
+                                            let newMarker: any
+                                            if (!currentEditingObjectMarkerPosition.current) {
+                                                newMarker = DG.marker(obj.coords, {
+                                                    draggable,
+                                                }).addTo(map)
+                                            } else {
+                                                let coords = currentEditingObjectMarkerPosition.current.getLatLng()
+                                                currentEditingObjectMarkerPosition.current.removeFrom(map)
+                                                newMarker = DG.marker(coords, {
+                                                    draggable,
+                                                }).addTo(map)
+                                            }
+                                            currentEditingObjectMarkerPosition.current = newMarker
                                             newMarker.on('dragend', async (event: TDragEndEvent) => {
                                                 let newLatLngObj = event.target.getLatLng()
                                                 let coords = [newLatLngObj.lat, newLatLngObj.lng]
@@ -165,12 +176,20 @@ export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
                                                     address = response.result.items[0].full_address_name ? response.result.items[0].full_address_name : ''
                                                     id = response.result.items[0].id
                                                     props.setError('')
-                                                    props.emitterMap.emit(EVENT__REFRESH_OBJECT_PROPERTIES, {address, id, coords})
+                                                    props.emitterMap.emit(EVENT__REFRESH_OBJECT_PROPERTIES, {
+                                                        address,
+                                                        id,
+                                                        coords
+                                                    })
                                                 } else {
                                                     props.setError('Здание не найдено')
                                                     newMarker.setLatLng(obj.coords)
                                                 }
                                             })
+                                        } else if (!draggable && currentEditingObjectMarkerPosition.current) {
+                                            let coords = currentEditingObjectMarkerPosition.current.getLatLng()
+                                            currentEditingObjectMarkerPosition.current.removeFrom(map)
+                                            currentEditingObjectMarkerPosition.current = DG.marker(coords).addTo(map)
                                         }
                                     }
                                     let editingObj = obj as TEditingObjectType
@@ -206,9 +225,27 @@ export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
         }, [props.objs, map])
         useEffect(() => {
             currentEditMode.current = props.editMode
-        }, [props.editMode])
+            if (map) {
+                if (currentEditingObjectMarkerPosition.current) {
+                    currentEditingObjectMarkerPosition.current.removeFrom(map)
+                    currentEditingObjectMarkerPosition.current = null
+                }
+                if (currentEntrance.current) {
+                    currentEntrance.current.removeFrom(map)
+                    currentEntrance.current = null
+                }
+                if (currentSquare.current) {
+                    currentSquare.current.removeFrom(map)
+                    currentSquare.current = null
+                }
+                if (currentEditingObjectOnMap.current) {
+                    currentEditingObjectOnMap.current.removeFrom(map)
+                    currentEditingObjectOnMap.current = null
+                }
+            }
+        }, [map, props.editMode])
         useEffect(() => {
-            props.emitterSideBar.on('changeDrawMode', (drawMode: drawingClassType) => {
+            props.emitterSideBar.on(EVENT__CHANGE_DRAW_MODE, (drawMode: drawingClassType) => {
                 currentDrawClass.current = drawMode
                 if (drawMode === 'square' && currentSquare.current) {
                     currentSquare.current.removeFrom(map)
@@ -217,6 +254,24 @@ export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
             })
             props.emitterSideBar.on('createMarker', (coords: pointCoordsType) => {
                 createObj({latlng: {lat: coords[0], lng: coords[1]}}, map)
+            })
+            props.emitterSideBar.on(EVENT__CHANGE_EDIT_MODE, () => {
+                if (currentEditingObjectOnMap.current) {
+                    currentEditingObjectOnMap.current.removeFrom(map)
+                    currentEditingObjectOnMap.current = null
+                }
+                if (currentEditingObjectMarkerPosition.current) {
+                    currentEditingObjectMarkerPosition.current.removeFrom(map)
+                    currentEditingObjectMarkerPosition.current = null
+                }
+                if (currentEntrance.current) {
+                    currentEntrance.current.removeFrom(map)
+                    currentEntrance.current = null
+                }
+                if (currentSquare.current) {
+                    currentSquare.current.removeFrom(map)
+                    currentSquare.current = null
+                }
             })
 
             return () => {
@@ -240,6 +295,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
                                  })
                                  mapElem.on('click', (event: any) => {
                                      if (currentEditMode.current && currentDrawClass.current && currentDrawClass.current !== 'nothing') {
+                                         debugger
                                          if (currentDrawClass.current === 'position') {
                                              createObj(event, mapElem)
                                          } else if (currentDrawClass.current === 'entrance') {

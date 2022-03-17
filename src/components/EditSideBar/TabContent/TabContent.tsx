@@ -15,6 +15,7 @@ export type TTabContentProps = {
     drawMode: drawingClassType,
     changeDrawMode: (
         value: drawingClassType,
+        editMode: TEditMode,
         callback?: (nextMode: drawingClassType) => void
     ) => void,
     createObject: (obj: TEditingObjectType) => void,
@@ -29,7 +30,7 @@ export const TabContent: React.FC<TTabContentProps> = React.memo((props) => {
     }
 
     const onPositionClickCallback = () => {
-        props.changeDrawMode('position', onChangeDrawModeExtension)
+        props.changeDrawMode('position', props.editMode, onChangeDrawModeExtension)
     }
 
     return (
@@ -47,21 +48,21 @@ export const TabContent: React.FC<TTabContentProps> = React.memo((props) => {
                 <button className={`${styles.control} ${props.drawMode === 'naming' ?
                     styles.active :
                     ''}`}
-                        onClick={() => props.changeDrawMode('naming')}
+                        onClick={() => props.changeDrawMode('naming', props.editMode)}
                         disabled={!props.currentObject.coords.length /*|| !!props.error*/}>
                     NAM
                 </button>
                 <button className={`${styles.control} ${props.drawMode === 'entrance' ?
                     styles.active :
                     ''}`}
-                        onClick={() => props.changeDrawMode('entrance')}
+                        onClick={() => props.changeDrawMode('entrance', props.editMode)}
                         disabled={!props.currentObject.coords.length /*|| !!props.error*/}>
                     ENT
                 </button>
                 <button className={`${styles.control} ${props.drawMode === 'square' ?
                     styles.active :
                     ''}`}
-                        onClick={() => props.changeDrawMode("square")}
+                        onClick={() => props.changeDrawMode("square", props.editMode)}
                         disabled={!props.currentObject.coords.length /*|| !!props.error*/}>
                     SQU
                 </button>

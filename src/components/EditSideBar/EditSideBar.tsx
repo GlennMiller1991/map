@@ -9,7 +9,7 @@ import React, {useCallback, useEffect, useState} from "react";
 import EventEmitter from "events";
 import styles from './EditSideBar.module.scss'
 import {
-    EVENT__CHANGE_DRAW_MODE,
+    EVENT__CHANGE_DRAW_MODE, EVENT__CHANGE_EDIT_MODE,
     EVENT__REFRESH_OBJECT_PROPERTIES
 } from "../../misc/constants";
 import {TabContent} from "./TabContent/TabContent";
@@ -47,7 +47,7 @@ export const EditSideBar: React.FC<TEditSideBarPropsType> = React.memo((props) =
     const [currentObject, setCurrentObject] = useState<TEditingObjectType>(props.object)
 
     // callbacks
-    const changeDrawMode = useCallback((mode: drawingClassType, callback?: (nextMode: drawingClassType) => void) => {
+    const changeDrawMode = useCallback((mode: drawingClassType, editMode: TEditMode, callback?: (nextMode: drawingClassType) => void) => {
         // switch on if first click on button
         // switch off if second click on button
         // then send value to map event emitter and change on it here
@@ -56,7 +56,11 @@ export const EditSideBar: React.FC<TEditSideBarPropsType> = React.memo((props) =
         // except update edit mode when position changing by another way
         let nextMode: drawingClassType = mode === drawMode ? 'nothing' : mode
         callback && callback(nextMode)
-        sendDrawModeToMap(nextMode)
+        if (nextMode === "position" && editMode === 'update') {
+            sendDrawModeToMap('nothing')
+        } else {
+            sendDrawModeToMap(nextMode)
+        }
         setDrawMode(nextMode)
     }, [drawMode, sendDrawModeToMap])
     const changeEditMode = useCallback((value: TEditSideBarEditMode) => {
@@ -103,6 +107,9 @@ export const EditSideBar: React.FC<TEditSideBarPropsType> = React.memo((props) =
         }
         setCurrentObject(props.object)
     }, [props.isNew, props.object, sendDrawModeToMap])
+    useEffect(() => {
+        props.emitterSideBar.emit(EVENT__CHANGE_EDIT_MODE)
+    }, [props.emitterSideBar, editMode])
 
     return (
         <div className={styles.editSideBar}>
