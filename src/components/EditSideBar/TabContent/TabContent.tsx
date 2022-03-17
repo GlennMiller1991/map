@@ -1,7 +1,7 @@
 import React from "react";
 import styles from "../EditSideBar.module.scss";
 import {AddressInput} from "./AddressInput/AddressInput";
-import {drawingClassType, objectType, pointCoordsType} from "../../../misc/types";
+import {drawingClassType, objectType, pointCoordsType, TEditingObjectType} from "../../../misc/types";
 import EventEmitter from "events";
 import {TEditMode} from "../EditSideBar";
 import {ObjectForm} from "./ObjectForm/ObjectForm";
@@ -10,24 +10,38 @@ export type TTabContentProps = {
     setMarkerOnCoords: (coords: pointCoordsType) => void,
     editMode: TEditMode,
     emitterSideBar: EventEmitter,
-    currentObject: objectType,
+    currentObject: TEditingObjectType,
     sendDrawModeToMap: (value: drawingClassType) => void,
     drawMode: drawingClassType,
-    changeDrawMode: (value: drawingClassType) => void,
-    createObject: (obj: objectType) => void,
+    changeDrawMode: (
+        value: drawingClassType,
+        callback?: (nextMode: drawingClassType) => void
+    ) => void,
+    createObject: (obj: TEditingObjectType) => void,
     updateObject: (obj: Partial<objectType>) => void,
     deleteObject: (id: string) => void,
 }
 export const TabContent: React.FC<TTabContentProps> = React.memo((props) => {
 
+    const onChangeDrawModeExtension = (drawMode: drawingClassType) => {
+        props.currentObject.changeMarkerDraggableMode &&
+        props.currentObject.changeMarkerDraggableMode(drawMode === 'position')
+    }
+
+    const onPositionClickCallback = () => {
+        props.changeDrawMode('position', onChangeDrawModeExtension)
+    }
+
     return (
         <div className={styles.tabContent}>
             <div className={styles.controlContainer}>
-                <button className={`${styles.control} ${props.drawMode === 'position' ?
-                    styles.active :
-                    ''}`}
+                <button className={`
+                ${styles.control} 
+                ${props.drawMode === 'position' ?
+                    styles.active : ''}
+                    `}
                         disabled={props.editMode === 'update' && props.currentObject.id === '-1'}
-                        onClick={() => props.changeDrawMode('position')}>
+                        onClick={onPositionClickCallback}>
                     POS
                 </button>
                 <button className={`${styles.control} ${props.drawMode === 'naming' ?

@@ -5,14 +5,16 @@ import {
     pointCoordsType,
     TDragEndEvent,
     TEditingObjectType,
-    TLatLng
 } from "../../misc/types";
 import {getBounds} from "../../utils/getBounds";
 import EventEmitter from "events";
 import arrow from '../../imgs/arrow.png';
 import {fakeObject} from "../../App";
 import {doubleGisRestApi, TSearchResponse} from "../../rest_api/restApi";
-import {RESPONSE__SUCCESS} from "../../misc/constants";
+import {
+    EVENT__REFRESH_OBJECT_PROPERTIES,
+    RESPONSE__SUCCESS
+} from "../../misc/constants";
 
 const DG = require('2gis-maps');
 const entrancePic = DG.icon({
@@ -30,11 +32,10 @@ type TMapMainProps = {
     error: string,
 }
 export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
+        console.log('from map main')
 
         //state
         const [map, setMap] = useState(null)
-
-        console.log('from map main')
 
         // доступ к актуальным данным расположенных на карте объектов не через useState
         let currentObjectsOnMap = useRef<any[]>([])
@@ -43,6 +44,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
         let currentDrawClass = useRef<drawingClassType>("nothing")
         let currentEntrance = useRef<any>(null)
         let currentSquare = useRef<any>(null)
+        let EditingObjectMarkerPosition = useRef<any>(null)
 
         const createObj = (event: any, map: any) => {
             //create object by click
@@ -58,19 +60,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
                 // if code 200 (success) get full address name or address name or name
                 // else set error
                 .then((response: TSearchResponse) => {
-
                     if (response.meta.code === RESPONSE__SUCCESS) {
-
-                        const marker = DG.marker(latLng).addTo(map);
-                        currentEditingObjectOnMap.current = marker
-                        currentObjectsOnMap.current.push(marker)
-
-                        let makeMarkerDraggable = () => {
-                            DG.marker(latLng, {draggable: true}).addTo(map).on('dragend', (event: TDragEndEvent) => {
-                                return event.target.getLatLng()
-                            })
-
-                        }
                         let address: string
                         let name: string
                         let id: string
@@ -84,13 +74,16 @@ export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
                             address,
                             name,
                             id,
-                            makeMarkerDraggable,
                         })
                     } else {
                         props.createObject(fakeObject)
                         props.setError('Здание не найдено')
                     }
                 })
+            debugger
+            const marker = DG.marker(latLng).addTo(map);
+            currentEditingObjectOnMap.current = marker
+            currentObjectsOnMap.current.push(marker)
         }
         const createEntrance = (event: any, map: any) => {
             if (currentEntrance.current) {
@@ -100,15 +93,17 @@ export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
             let marker = DG.marker([...latLng], {icon: entrancePic, opacity: 0.6}).addTo(map);
             currentObjectsOnMap.current.push(marker)
             currentEntrance.current = marker
-            props.emitterMap.emit('entranceWasCreated', latLng)
+            props.emitterMap.emit(EVENT__REFRESH_OBJECT_PROPERTIES, {entranceCoords: latLng})
         }
         const createSquare = (event: any, map: any) => {
             if (currentSquare.current) {
                 let latLng = [event.latlng.lat, event.latlng.lng]
                 currentSquare.current.addLatLng(latLng)
                 props.emitterMap.emit(
-                    'squareWasCreated',
-                    currentSquare.current.getLatLngs()[0].map((coords: any) => [coords.lat, coords.lng])
+                    EVENT__REFRESH_OBJECT_PROPERTIES,
+                    {
+                        squareCoords: currentSquare.current.getLatLngs()[0].map((coords: any) => [coords.lat, coords.lng]),
+                    }
                 )
             } else {
                 let latLng = [event.latlng.lat, event.latlng.lng]
@@ -143,25 +138,52 @@ export const MapMain: React.FC<TMapMainProps> = React.memo((props) => {
                         // создания рендерящихся объектов
                         if (obj.itIs === 'point') {
                             objectToMap = DG.marker(obj.coords).addTo(map)
+                            objectToMap.on('click', () => {
+                                if (currentSquare.current) {
+                                    currentSquare.current.removeFrom(map)
+                                }
+                                if (currentEntrance.current) {
+                                    currentEntrance.current.removeFrom(map)
+                                }
+                                if (currentEditingObjectOnMap.current) {
+                                    currentEditingObjectOnMap.current.removeFrom(map)
+                                }
+                                if (currentEditMode) {
+                                    const changeMarkerDraggableMode = (draggable: boolean) => {
+                                        if (draggable) {
+                                            objectToMap.removeFrom(map)
+                                            let newMarker = DG.marker(obj.coords, {
+                                                draggable,
+                                            }).addTo(map)
+                                            newMarker.on('dragend', async (event: TDragEndEvent) => {
+                                                let newLatLngObj = event.target.getLatLng()
+                                                let coords = [newLatLngObj.lat, newLatLngObj.lng]
+                                                let response = await doubleGisRestApi.getAddress(coords as pointCoordsType)
+                                                if (response.meta.code === RESPONSE__SUCCESS) {
+                                                    let address: string
+                                                    let id: string
+                                                    address = response.result.items[0].full_address_name ? response.result.items[0].full_address_name : ''
+                                                    id = response.result.items[0].id
+                                                    props.setError('')
+                                                    props.emitterMap.emit(EVENT__REFRESH_OBJECT_PROPERTIES, {address, id, coords})
+                                                } else {
+                                                    props.setError('Здание не найдено')
+                                                    newMarker.setLatLng(obj.coords)
+                                                }
+                                            })
+                                        }
+                                    }
+                                    let editingObj = obj as TEditingObjectType
+                                    editingObj.changeMarkerDraggableMode = changeMarkerDraggableMode
+                                    props.createObject(editingObj);
+                                }
+                            })
                         } else if (obj.itIs === 'line') {
                             objectToMap = DG.polyline(obj.coords).addTo(map)
                         } else if (obj.itIs === 'polygon') {
                             objectToMap = DG.polygon(obj.coords).addTo(map)
                         }
-                        objectToMap.on('click', () => {
-                            if (currentSquare.current) {
-                                currentSquare.current.removeFrom(map)
-                            }
-                            if (currentEntrance.current) {
-                                currentEntrance.current.removeFrom(map)
-                            }
-                            if (currentEditingObjectOnMap.current) {
-                                currentEditingObjectOnMap.current.removeFrom(map)
-                            }
-                            if (currentEditMode) {
-                                props.createObject(obj);
-                            }
-                        })
+
                         newObjects.push(objectToMap)
                         if (obj.entranceCoords && obj.entranceCoords.length) {
                             let latLng = obj.entranceCoords

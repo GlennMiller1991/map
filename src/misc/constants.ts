@@ -8,6 +8,7 @@ export const RESPONSE__SERVER_ERROR = 500
 
 // event emitter messages
 export const EVENT__CHANGE_DRAW_MODE = 'changeDrawMode'
+export const EVENT__REFRESH_OBJECT_PROPERTIES = 'refreshObjectProperties'
 
 // local storage exceptions
 export const EXCEPTION__FORBIDDEN = 18

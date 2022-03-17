@@ -8,6 +8,8 @@ import {ErrorMessage} from "./components/ErrorMessage/ErrorMessage";
 import {EXCEPTION__EXCEED_MEMORY, EXCEPTION__FORBIDDEN} from "./misc/constants";
 
 export const fakeObject: objectType = {
+    // empty coords array and id is
+    // using for dis/able functionality
     classOfObject: undefined,
     square: '',
     coords: [],
@@ -25,24 +27,42 @@ export const fakeObject: objectType = {
 function App() {
 
     //state
+    // error log for user
     const [appError, setAppError] = useState<string>('')
+
+    // object that now is in edit bar component for creating or editin
     const [currentObject, setCurrentObject] = useState<TEditingObjectType>(fakeObject)
+
+    // show edit bar?
     const [editMode, setEditMode] = useState(false)
+
+    // objects on the map without just created
     const [objectsSet, setObjectsSet] = useState<objectType[]>([])
+
+    // event emitters - messages exchange between map and sidebar
     const [emitterSideBar, emitterMap] = useMemo(() => {
         return [new EventEmitter(), new EventEmitter()]
     }, [])
 
+
     //callbacks
     const rerenderFunction = useCallback(() => {
+        // return to default state of app
+        // clearing error, wiping object out of edit bar
+        // rerender saved objects in state
         setObjectsSet([...objectsSet])
         setCurrentObject(fakeObject)
         setAppError('')
     }, [objectsSet])
     const setError = useCallback((error: string) => {
+        // function for easier throwing setState function in component
+        // NO NEED!! REFACTOR
         setAppError(error)
     }, [])
     const onClickHandler = useCallback(() => {
+        // switching edit mode
+        // if next mode is edit - wiping object in sidebar
+        // else - rerender
         if (editMode) {
             setObjectsSet([...objectsSet])
         } else {
@@ -50,23 +70,36 @@ function App() {
         }
         setEditMode(!editMode)
     }, [objectsSet, editMode])
-    const createObject = (obj: TEditingObjectType) => {
+    const createObject = useCallback((obj: TEditingObjectType) => {
+        // create object inside map component
+        // function for easier throwing setState function in component
+        // NO NEED!!! REFACTOR
         setCurrentObject(obj)
-    }
+    }, [])
     const addObject = useCallback((obj: objectType) => {
+        // switching edit mode with sweeping garbage
+        // then add current object to objectsSet
         onClickHandler()
         setObjectsSet([...objectsSet, obj])
     }, [objectsSet, onClickHandler])
-    const updateObject = (obj: objectType) => {
-        onClickHandler()
-        setObjectsSet(objectsSet.map((object) => object.id === obj.id ? obj : object))
-    }
-    const deleteObject = (id: string) => {
-        debugger
+    const updateObject = useCallback((obj: TEditingObjectType) => {
+        // switching edit mode with sweeping garbage
+        // then update given object in state objectsSet if there is
+        let {changeMarkerDraggableMode, ...newObj} = obj
+        let newObjectSet = objectsSet.map((object) => {
+            return object.id === currentObject.id ? newObj as objectType : object
+        })
+        setObjectsSet(newObjectSet)
+        setEditMode(!editMode)
+    }, [onClickHandler, objectsSet, currentObject])
+    const deleteObject = useCallback((id: string) => {
+        // filter objectsSet by id
+        // then update objectsSet
+        // then close editBar
         const newObjectsSet = objectsSet.filter(object => object.id !== id)
         setObjectsSet(newObjectsSet)
-        setEditMode(!editMode)
-    }
+        setEditMode(false)
+    }, [objectsSet])
     const saveToLS = useCallback((objectsSet: objectType[]) => {
         // Function reflects current objects set in state on localstorage.
         // So can delete all local storage data if call it with empty objects array.
@@ -81,6 +114,7 @@ function App() {
             objectsSet.forEach((object) => {
                 localStorage.setItem(object.id, JSON.stringify(object))
             })
+            setAppError('Данные сохранены')
         } catch (err) {
             let error = err as DOMException
             switch(error.code) {
@@ -109,6 +143,7 @@ function App() {
                     }
                 }
             }
+            setAppError('Данные загружены')
             setObjectsSet(objects)
         } catch(err) {
             let error = err as DOMException
@@ -125,13 +160,15 @@ function App() {
         }
     }, [])
 
+    // side effects
     useEffect(() => {
+        // listen for storage event from another browser tab
         const storageListener = () => {
             setAppError('Данные изменились в другой вкладке')
         }
         window.addEventListener('storage', storageListener)
         return () => {
-            console.log('hello')
+            // delete event listener after app component will die
             window.removeEventListener('storage', storageListener)
         }
     }, [])
