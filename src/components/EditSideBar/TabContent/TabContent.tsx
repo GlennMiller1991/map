@@ -25,11 +25,17 @@ export type TTabContentProps = {
 export const TabContent: React.FC<TTabContentProps> = React.memo((props) => {
 
     const onChangeDrawModeExtension = (drawMode: drawingClassType) => {
+        // additional function that invokes in changingDrawMode function
+        // this function is calling always in change draw mode
+        // but not always there is changeMarkerDraggableMode.
+        // changeMarkerDraggableMode is creating only in update mode of side bar
+        // and is giving only with updatable object
         props.currentObject.changeMarkerDraggableMode &&
         props.currentObject.changeMarkerDraggableMode(drawMode === 'position')
     }
 
     const onPositionClickCallback = () => {
+        // function for making invoke simpler
         props.changeDrawMode('position', props.editMode, onChangeDrawModeExtension)
     }
 

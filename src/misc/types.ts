@@ -29,15 +29,33 @@ type longitudeType = number
 
 type itIsType = 'point' | 'line' | 'polygon'
 export type objectClassType = 'office' | 'storage' | 'shop' | undefined
-export type drawingClassType = 'entrance' | 'square' |'position' | 'update' | 'nothing' | 'naming'
+export type drawingClassType = 'entrance' | 'square' | 'position' | 'update' | 'nothing' | 'naming'
 export type TEditSideBarEditMode = 'create' | 'update'
 
 // 2gis types
+export type TMarker = TLayer & {
+    getLatLng: () => TLatLng,
+    setLatLng: (coords: TLatLng | pointCoordsType) => void,
+    options: {
+        interactive: boolean,
+        draggable: boolean,
+        keyboard: boolean,
+        opacity: number,
+        alt: string,
+        pane: string,
+        riseOffset: number,
+        riseOnHover: boolean,
+        title: string,
+        zIndexOffset: number,
+    }
+}
+export type TLayer = {
+    removeFrom: (obj: {}) => void
+}
 export type TLatLng = {
     lat: number,
     lng: number,
 }
-
 export type TDragEndEventTarget = EventTarget & {
     getLatLng: () => TLatLng,
 }

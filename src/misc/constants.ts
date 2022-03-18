@@ -15,3 +15,6 @@ export const EVENT__CREATE_MARKER = 'createMarker'
 // local storage exceptions
 export const EXCEPTION__FORBIDDEN = 18
 export const EXCEPTION__EXCEED_MEMORY = 22
+
+// fakeObject constants
+export const fakeID = '-2'

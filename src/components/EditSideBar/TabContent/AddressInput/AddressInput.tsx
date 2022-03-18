@@ -3,7 +3,7 @@ import React, {ChangeEvent, useEffect, useState} from "react";
 import {doubleGisRestApi, TSearchResponse} from "../../../../rest_api/restApi";
 import {getCoordsFromString} from "../../../../utils/getCoordsFromString";
 import styles from '../../EditSideBar.module.scss'
-import {RESPONSE__SUCCESS} from "../../../../misc/constants";
+import {fakeID, RESPONSE__SUCCESS} from "../../../../misc/constants";
 
 type TAddressInputProps = {
     value: string,
@@ -19,8 +19,9 @@ export const AddressInput: React.FC<TAddressInputProps> = React.memo((props) => 
         const [suggestions, setSuggestions] = useState<Array<{ name: string, id: string }>>([])
         const [showSuggestions, setShowSuggestions] = useState<boolean>(false)
 
+        // callbacks
         const onSuggestionClick = (value: string, id: string) => {
-            if (id !== '-2') {
+            if (id !== fakeID) {
                 setValue(value)
                 setShowSuggestions(false)
                 doubleGisRestApi.getCoords(id)
@@ -31,19 +32,23 @@ export const AddressInput: React.FC<TAddressInputProps> = React.memo((props) => 
                         // and then set marker on the map
                         if (response.meta.code === RESPONSE__SUCCESS) {
                             props.setMarker(getCoordsFromString(response.result.items[0].geometry.centroid))
-                        } else {
-                            // props.setError('something went wrong')
                         }
                     })
             }
         }
-
-        // callbacks
         const onChangeHandler = (event: ChangeEvent<HTMLInputElement>) => {
+            // suggestions appear only after change input field
+
+            // get value from input
             let value = event.currentTarget.value
+            // try to receive suggestions on value from 2gis api
             doubleGisRestApi.getSuggestion(value)
                 .then((response: TSearchResponse) => {
-                    if (response.meta.code === 200) {
+                    if (response.meta.code === RESPONSE__SUCCESS) {
+                        // if okay
+                        // try to get full address / just address / just name
+                        // get 2gis id and set name + id to state
+                        // else unclickable fake object to state
                         let results = response.result.items.map(object => {
                             let name = object.full_address_name ? object.full_address_name :
                                 object.address_name ? object.address_name :
@@ -53,13 +58,15 @@ export const AddressInput: React.FC<TAddressInputProps> = React.memo((props) => 
                         })
                         setSuggestions(results)
                     } else {
-                        setSuggestions([{name: 'Нет совпадений', id: '-2'}])
+                        setSuggestions([{name: 'Нет совпадений', id: fakeID}])
                     }
                 })
+                .catch()   // not implemented
             setValue(value)
         }
 
         useEffect(() => {
+            // looking for new address
             setValue(props.value)
             setSuggestions([])
         }, [props.value])
@@ -76,7 +83,6 @@ export const AddressInput: React.FC<TAddressInputProps> = React.memo((props) => 
                            }}
                            value={value}
                            onChange={onChangeHandler}
-                        // onBlur={onBlurHandler}
                     />
                 </div>
                 {

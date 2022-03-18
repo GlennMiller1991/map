@@ -22,7 +22,6 @@ type TEditSideBarPropsType = {
     callback: (obj: objectType) => void,
     isNew: boolean,
     deleteObject: (id: string) => void,
-    error: string,
     setError: (error: string) => void,
     rerenderFunction: () => void,
 }

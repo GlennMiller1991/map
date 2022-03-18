@@ -194,6 +194,7 @@ function App() {
                                  emitterMap={emitterMap}
                                  object={currentObject}
                                  callback={
+                                     // update object or add object function if it new object or old object
                                      objectsSet.find(object => object.id === currentObject.id) ?
                                          updateObject :
                                          addObject
@@ -201,7 +202,6 @@ function App() {
                                  rerenderFunction={rerenderFunction}
                                  deleteObject={deleteObject}
                                  isNew={!objectsSet.find(object => object.id === currentObject.id)}
-                                 error={appError}
                                  setError={setError}/>
                 }
                 <MapMain emitterMap={emitterMap}
@@ -209,8 +209,7 @@ function App() {
                          objs={objectsSet}
                          editMode={editMode}
                          createObject={createObject}
-                         setError={setError}
-                         error={appError}/>
+                         setError={setError}/>
             </div>
             {
                 appError &&
