@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from "react";
 import {
     coordsType,
-    drawingClassType,
+    drawingClassType, IPolygon, IPolyline,
     objectType,
     pointCoordsType,
     TDragEndEvent,
@@ -38,7 +38,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({setError, createObj
 
         // доступ к актуальным данным расположенных на карте объектов не через useState
         // all rendered objects on map
-        let currentObjectsOnMap = useRef<TMarker[]>([])
+        let currentObjectsOnMap = useRef<Array<TMarker | IPolyline | IPolygon>>([])
 
         // is edit bar opened?
         let currentEditMode = useRef<boolean>(props.editMode)
@@ -56,7 +56,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({setError, createObj
         let currentEntrance = useRef<TMarker | null>(null)
 
         // new square of object in editing bar
-        let currentSquare = useRef<any>(null)
+        let currentSquare = useRef<IPolygon | null>(null)
 
         // functions
         const removeUnsavedObjectsFromMap = useCallback(() => {
@@ -158,11 +158,11 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({setError, createObj
                 // if already exist
                 // add point to square
                 // then take control back to edit bar with new square coords array
-                let latLng = [event.latlng.lat, event.latlng.lng]
-                currentSquare.current.addLatLng(latLng)
+                currentSquare.current.addLatLng(event.latlng)
                 props.emitterMap.emit(
                     EVENT__REFRESH_OBJECT_PROPERTIES,
                     {
+                        //@ts-ignore
                         squareBorders: currentSquare.current.getLatLngs()[0].map((coords: TLatLng) => [coords.lat, coords.lng]),
                     }
                 )
@@ -194,10 +194,10 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({setError, createObj
                     // useEffect реагирует на изменение переданного массива объектов в компоненту
                     //
                     // если они есть и изменились
-                    let newObjects: any[] = []
+                    let newObjects: Array<TMarker | IPolygon | IPolyline> = []
                     props.objs.forEach((obj) => {
                         // то прикрепляем к карте
-                        let objectToMap: any
+                        let objectToMap: TMarker | IPolygon | IPolyline
 
                         // точка, линия или многоугольник?
                         // под каждое значение 2gis предоставляет свой инструмент
@@ -220,7 +220,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({setError, createObj
 
                                         if (draggable) {
                                             // if position update mode in edit bar
-                                            let newMarker: any
+                                            let newMarker: TMarker
                                             if (!currentEditingObjectMarkerPosition.current) {
                                                 // if first edit try
                                                 // just create draggable marker instead of deleted
@@ -267,7 +267,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({setError, createObj
                                                     // set error
                                                     // and return marker to start position
                                                     setError('Здание не найдено')
-                                                    newMarker.setLatLng(obj.coords)
+                                                    newMarker.setLatLng(obj.coords as unknown as pointCoordsType)
                                                 }
                                             })
                                         } else if (!draggable && currentEditingObjectMarkerPosition.current) {
@@ -288,7 +288,8 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({setError, createObj
                             })
                         } else if (obj.itIs === 'line') {
                             objectToMap = DG.polyline(obj.coords).addTo(map)
-                        } else if (obj.itIs === 'polygon') {
+                        }
+                        else /*if (obj.itIs === 'polygon')*/ {
                             objectToMap = DG.polygon(obj.coords).addTo(map)
                         }
 
@@ -355,7 +356,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({setError, createObj
                                      'center': [55.754753, 37.620861],
                                      'zoom': 9,
                                  })
-                                 mapElem.on('click', (event: any) => {
+                                 mapElem.on('click', (event: TMouseEvent) => {
                                      if (currentEditMode.current && currentDrawClass.current && currentDrawClass.current !== 'nothing') {
 
                                          if (currentDrawClass.current === 'position') {
