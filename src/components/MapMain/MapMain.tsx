@@ -1,10 +1,11 @@
 import React, {useCallback, useEffect, useRef, useState} from "react";
 import {
+    coordsType,
     drawingClassType,
     objectType,
     pointCoordsType,
     TDragEndEvent,
-    TEditingObjectType, TMap, TMarker,
+    TEditingObjectType, TLatLng, TMap, TMarker, TMouseEvent,
 } from "../../misc/types";
 import {getBounds} from "../../utils/getBounds";
 import EventEmitter from "events";
@@ -31,11 +32,9 @@ type TMapMainProps = {
     createObject: (obj: TEditingObjectType) => void,
     setError: (error: string) => void,
 }
-export const MapMain: React.FC<TMapMainProps> = React.memo(({
-    setError, createObject, ...props
-                                                            }) => {
+export const MapMain: React.FC<TMapMainProps> = React.memo(({setError, createObject, ...props}) => {
         //state
-        const [map, setMap] = useState(null)
+        const [map, setMap] = useState<null | TMap>(null)
 
         // доступ к актуальным данным расположенных на карте объектов не через useState
         // all rendered objects on map
@@ -45,51 +44,52 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({
         let currentEditMode = useRef<boolean>(props.editMode)
 
         // marker of new(!) object located in edit bar
-        let currentEditingObjectOnMap = useRef<any>(null)
+        let currentEditingObjectOnMap = useRef<TMarker | null>(null)
 
         // marker of old(!) object located in edit bar
-        let currentEditingObjectMarkerPosition = useRef<any>(null)
+        let currentEditingObjectMarkerPosition = useRef<TMarker | null>(null)
 
         // what does we drawing now - position, entrance, square, line?
         let currentDrawClass = useRef<drawingClassType>("nothing")
 
         // new entrance of object in editing bar
-        let currentEntrance = useRef<any>(null)
+        let currentEntrance = useRef<TMarker | null>(null)
 
-        // new square of obbject in editing bar
+        // new square of object in editing bar
         let currentSquare = useRef<any>(null)
 
         // functions
         const removeUnsavedObjectsFromMap = useCallback(() => {
-            // concept is
-            // if we are changing edit mode in app component (show/hide edit bar)
-            // or in edit bar (create/update object)
-            // we need to delete all unsaved objects from map.
-            // There (app, sidebar) we are invoking refresh state with render
-            // but here we need to sweep out all garbage manually
-            if (currentEditingObjectMarkerPosition.current) {
-                currentEditingObjectMarkerPosition.current.removeFrom(map)
-                currentEditingObjectMarkerPosition.current = null
-            }
-            if (currentEntrance.current) {
-                currentEntrance.current.removeFrom(map)
-                currentEntrance.current = null
-            }
-            if (currentSquare.current) {
-                currentSquare.current.removeFrom(map)
-                currentSquare.current = null
-            }
-            if (currentEditingObjectOnMap.current) {
-                currentEditingObjectOnMap.current.removeFrom(map)
-                currentEditingObjectOnMap.current = null
+            if (map) {
+                // concept is
+                // if we are changing edit mode in app component (show/hide edit bar)
+                // or in edit bar (create/update object)
+                // we need to delete all unsaved objects from map.
+                // There (app, sidebar) we are invoking refresh state with render
+                // but here we need to sweep out all garbage manually
+                if (currentEditingObjectMarkerPosition.current) {
+                    currentEditingObjectMarkerPosition.current.removeFrom(map)
+                    currentEditingObjectMarkerPosition.current = null
+                }
+                if (currentEntrance.current) {
+                    currentEntrance.current.removeFrom(map)
+                    currentEntrance.current = null
+                }
+                if (currentSquare.current) {
+                    currentSquare.current.removeFrom(map)
+                    currentSquare.current = null
+                }
+                if (currentEditingObjectOnMap.current) {
+                    currentEditingObjectOnMap.current.removeFrom(map)
+                    currentEditingObjectOnMap.current = null
+                }
             }
         }, [map])
-        const createMarker = useCallback((event: any, map: any) => {
+        const createMarker = useCallback((event: TMouseEvent, map: TMap) => {
             // create object by click
             // is invoked only if edit bar is shown
             // and only if create mode in edit bar
             // and only if position draw mode
-            console.log(event, map.getRenderer())
 
             if (currentEditingObjectOnMap.current) {
                 // delete previous object from map
@@ -112,7 +112,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({
                         setError('')
                         createObject({
                             ...fakeObject,
-                            coords: latLng,
+                            coords: latLng as unknown as coordsType,
                             address,
                             name,
                             id,
@@ -131,7 +131,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({
             // save it in multiple obj state
             currentObjectsOnMap.current.push(marker)
         }, [setError, createObject])
-        const createEntrance = useCallback((event: any, map: any) => {
+        const createEntrance = useCallback((event: TMouseEvent, map: TMap) => {
             // is invoked only if edit bar is shown
             // and only if we are in entrance draw mode
 
@@ -150,7 +150,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({
             // return control to edit bar with new coords of entrance
             props.emitterMap.emit(EVENT__REFRESH_OBJECT_PROPERTIES, {entranceCoords: latLng})
         }, [props.emitterMap])
-        const createSquare = useCallback((event: any, map: any) => {
+        const createSquare = useCallback((event: TMouseEvent, map: TMap) => {
             // is invoked only if edit bar is shown
             // and only in square draw mode
 
@@ -163,7 +163,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({
                 props.emitterMap.emit(
                     EVENT__REFRESH_OBJECT_PROPERTIES,
                     {
-                        squareBorders: currentSquare.current.getLatLngs()[0].map((coords: any) => [coords.lat, coords.lng]),
+                        squareBorders: currentSquare.current.getLatLngs()[0].map((coords: TLatLng) => [coords.lat, coords.lng]),
                     }
                 )
             } else {
@@ -323,18 +323,19 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({
             }
         }, [map, props.editMode, removeUnsavedObjectsFromMap])
         useEffect(() => {
-            props.emitterSideBar.on(EVENT__CHANGE_DRAW_MODE, (drawMode: drawingClassType) => {
-                currentDrawClass.current = drawMode
-                if (drawMode === 'square' && currentSquare.current) {
-                    currentSquare.current.removeFrom(map)
-                    currentSquare.current = null
-                }
-            })
-            props.emitterSideBar.on(EVENT__CREATE_MARKER, (coords: pointCoordsType) => {
-                createMarker({latlng: {lat: coords[0], lng: coords[1]}}, map)
-            })
-            props.emitterSideBar.on(EVENT__CHANGE_EDIT_MODE, removeUnsavedObjectsFromMap)
-
+            if (map) {
+                props.emitterSideBar.on(EVENT__CHANGE_DRAW_MODE, (drawMode: drawingClassType) => {
+                    currentDrawClass.current = drawMode
+                    if (drawMode === 'square' && currentSquare.current) {
+                        currentSquare.current.removeFrom(map)
+                        currentSquare.current = null
+                    }
+                })
+                props.emitterSideBar.on(EVENT__CREATE_MARKER, (coords: pointCoordsType) => {
+                    createMarker({latlng: {lat: coords[0], lng: coords[1]}} as TMouseEvent, map)
+                })
+                props.emitterSideBar.on(EVENT__CHANGE_EDIT_MODE, removeUnsavedObjectsFromMap)
+            }
             return () => {
                 props.emitterSideBar.removeAllListeners()
             }

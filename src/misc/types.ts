@@ -36,7 +36,10 @@ export type TEditSideBarEditMode = 'create' | 'update'
 export interface IClass {
 
 }
-
+export interface IEvent {
+    type: string,
+    target: object,
+}
 export interface IHandler {
     enable: () => void,
     disable: () => void,
@@ -45,7 +48,7 @@ export interface IHandler {
     removeHooks: () => void,
 }
 
-export type TMarker = TLayer & {
+export type TMarker = ILayer & {
     getLatLng: () => TLatLng,
     setLatLng: (coords: TLatLng | pointCoordsType) => void,
     options: {
@@ -61,7 +64,16 @@ export type TMarker = TLayer & {
         zIndexOffset: number,
     }
 }
-export type TLayer = {
+export interface IPolygon extends IPolyline {
+
+}
+export interface IPolyline extends IPath {
+
+}
+export interface IPath extends ILayer{
+
+}
+export interface ILayer {
     removeFrom: (obj: {}) => void
 }
 export type TMap = {
@@ -79,9 +91,9 @@ export type TMap = {
     rulerControl: unknown,
     trafficControl: unknown,
     baseLayer: unknown,
-    addLayer: (layer: TLayer) => TMap,
-    removeLayer: (layer: TLayer) => TMap,
-    hasLayer: (layer: TLayer) => boolean,
+    addLayer: (layer: ILayer) => TMap,
+    removeLayer: (layer: ILayer) => TMap,
+    hasLayer: (layer: ILayer) => boolean,
     eachLayer: (callback: () => void, context?: object) => TMap,
     openPopup: unknown,
     closePopup: unknown,
@@ -135,9 +147,9 @@ export type TMap = {
     layerPointToContainerPoint: (point: TPoint) => TPoint,
     containerPointToLatLng: (point: TPoint) => TPoint,
     latLngToContainerPoint: (latlng: TLatLng) => TPoint,
-    mouseEventToContainerPoint: (event: MouseEvent) => TPoint,
-    mouseEventToLayerPoint: (event: MouseEvent) => TPoint,
-    mouseEventToLatLng: (event: MouseEvent) => TLatLng,
+    mouseEventToContainerPoint: (event: TMouseEvent) => TPoint,
+    mouseEventToLayerPoint: (event: TMouseEvent) => TPoint,
+    mouseEventToLatLng: (event: TMouseEvent) => TLatLng,
     locate: (options?: TLocateOptions) => TMap,
     stopLocate: () => TMap,
 
@@ -199,6 +211,12 @@ export type TPoint = {
     equals: (point: TPoint) => boolean,
     contains: (point: TPoint) => boolean,
     toString: () => string,
+}
+export type TMouseEvent = IEvent & {
+    latlng: TLatLng,
+    layerPoint: TPoint,
+    containerPoint: TPoint,
+    originalEvent: MouseEvent
 }
 export type TDragEndEventTarget = EventTarget & {
     getLatLng: () => TLatLng,
