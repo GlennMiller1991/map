@@ -64,16 +64,27 @@ export type TMarker = ILayer & {
         zIndexOffset: number,
     }
 }
-export interface IPolygon extends IPolyline {
-
-}
+export interface IPolygon extends IPolyline {}
 export interface IPolyline extends IPath {
-
+    toGeoJSON: () => object,
+    getLatLngs: () => TLatLng[],
+    setLatLngs: (latlngs: TLatLng[]) => IPolyline,
+    isEmpty: () => boolean,
+    getCenter: () => TLatLng,
+    getBounds: () => TLatLngBounds,
+    addLatLng: (latlngs: TLatLng | TLatLng[]) => IPolyline,
 }
 export interface IPath extends ILayer{
-
+    redraw: () => IPath,
+    setStyle: (options: TPathOptions) => IPath,
+    bringToFront: () => IPath,
+    bringToBack: () => IPath,
 }
-export interface ILayer {
+export interface IEvented {
+    on: (type: string, context?: object) => void,
+    off: (type: string, context?: object) => void,
+}
+export interface ILayer extends IEvented{
     removeFrom: (obj: {}) => void
 }
 export type TMap = {
@@ -227,11 +238,34 @@ export type TDragEndEvent = {
     type: 'string',
 }
 export type TLanguage = 'en' | 'ru' | 'it' | 'cs' | 'es' | 'ar'
-export type TLocateOptions = {
+export type TLocateOptions = Partial<{
     watch: boolean,
     setView: boolean,
     maxZoom: number,
     timeout: number,
     maximumAge: number,
     enableHighAccuracy: boolean,
-}
+}>
+export type TPathOptions = Partial<{
+    stroke: boolean,
+    color: string,
+    weight: number,
+    opacity: number,
+    lineCap: TStrokeLineCap,
+    lineJoin: TStrokeLineJoin,
+    dashArray: string,
+    dashOffset: string,
+    fill: boolean,
+    fillColor: string,
+    fillOpacity: number,
+    fillRule: 'nonzero' | 'evenodd',
+    interactive: boolean,
+    renderer: unknown,
+    className: string,
+}> | TPolylineOptions
+export type TPolylineOptions = Partial<{
+    smoothFactor: number,
+    noClip: boolean,
+}>
+export type TStrokeLineCap = 'round' | 'butt' | 'square'
+export type TStrokeLineJoin = 'arcs' | 'bevel' | 'miter' | 'miter-clip' | 'round'
