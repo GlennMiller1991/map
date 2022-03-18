@@ -4,7 +4,7 @@ import {
     objectType,
     pointCoordsType,
     TDragEndEvent,
-    TEditingObjectType, TMarker,
+    TEditingObjectType, TMap, TMarker,
 } from "../../misc/types";
 import {getBounds} from "../../utils/getBounds";
 import EventEmitter from "events";
@@ -89,6 +89,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({
             // is invoked only if edit bar is shown
             // and only if create mode in edit bar
             // and only if position draw mode
+            console.log(event, map.getRenderer())
 
             if (currentEditingObjectOnMap.current) {
                 // delete previous object from map
