@@ -147,7 +147,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({setError, createObj
             let options: TEntranceOptions = {vectors: [wktEntrance], interactive: true}
             let entrance = DG.entrance(options).addTo(map).show(true)
             entrance.setStyle({className: 'test_class'})
-
+            // test string
             // set new marker with our icon on map
             let marker = DG.marker([...latLng], {icon: entrancePic, opacity: 0.6}).addTo(map);
             // save it in multiple obj state
