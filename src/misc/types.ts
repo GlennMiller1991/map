@@ -7,7 +7,7 @@ export type objectType = {
     // свойства любого типа со строковыми ключами
     id: string,
     coords: coordsType,
-    entranceCoords: null | coordsType,
+    entranceCoords: Array<pointCoordsType>,
     itIs: itIsType,
     name: string,
     address: string,
@@ -19,6 +19,7 @@ export type objectType = {
 }
 
 export type TEditingObjectType = objectType & {
+    activeEntrance?: pointCoordsType,
     changeMarkerDraggableMode?: (draggable: boolean) => void,
 }
 
@@ -27,10 +28,12 @@ export type pointCoordsType = [latitudeType, longitudeType]
 type latitudeType = number
 type longitudeType = number
 
+// draw & edit modes
 type itIsType = 'point' | 'line' | 'polygon'
 export type objectClassType = 'office' | 'storage' | 'shop' | undefined
 export type drawingClassType = 'entrance' | 'square' | 'position' | 'update' | 'nothing' | 'naming'
 export type TEditSideBarEditMode = 'create' | 'update'
+export type TEntranceEditMode = 'add' | 'nothing' | 'delete' | 'edit'
 
 // 2gis types
 export interface IClass {
@@ -288,3 +291,9 @@ export type TEntranceOptions = Partial<{
 export type TStrokeLineCap = 'round' | 'butt' | 'square'
 export type TStrokeLineJoin = 'arcs' | 'bevel' | 'miter' | 'miter-clip' | 'round'
 export type TWKText = 'POINT' | 'MULTIPOINT' | 'LINESTRING' | 'MULTILINESTRING' | 'POLYGON' | 'MULTIPOLIGON' | 'TRIANGLE'
+
+export type TCurrentObjectsOnMap = {
+    entrances: Array<TMarker>,
+    markers: Array<TMarker>,
+    squares: Array<IPolygon>,
+}

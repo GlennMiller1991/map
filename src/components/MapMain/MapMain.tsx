@@ -1,29 +1,35 @@
 import React, {useCallback, useEffect, useRef, useState} from "react";
 import {
     coordsType,
-    drawingClassType, IPolygon, IPolyline,
+    drawingClassType, IPolygon,
     objectType,
-    pointCoordsType,
+    pointCoordsType, TCurrentObjectsOnMap,
     TDragEndEvent,
-    TEditingObjectType, TEntranceOptions, TLatLng, TMap, TMarker, TMouseEvent,
+    TEditingObjectType, TLatLng, TMap, TMarker, TMouseEvent,
 } from "../../misc/types";
 import {getBounds} from "../../utils/getBounds";
 import EventEmitter from "events";
-import arrow from '../../imgs/arrow.png';
+import arrow from '../../common/imgs/arrow.png';
 import {fakeObject} from "../../App";
 import {doubleGisRestApi, TSearchResponse} from "../../rest_api/restApi";
 import {
-    EVENT__CHANGE_DRAW_MODE, EVENT__CHANGE_EDIT_MODE, EVENT__CREATE_MARKER,
+    EVENT__CHANGE_DRAW_MODE,
+    EVENT__CHANGE_EDIT_MODE,
+    EVENT__CREATE_ENTRANCE,
+    EVENT__CREATE_MARKER,
+    EVENT__DELETE_ENTRANCE,
     EVENT__REFRESH_OBJECT_PROPERTIES,
     RESPONSE__SUCCESS
 } from "../../misc/constants";
-import {oneCoordsToEntrance} from "../../utils/oneCoordsToEntrance";
 
 const DG = require('2gis-maps');
-const entrancePic = DG.icon({
-    iconUrl: arrow,
-    iconSize: [30, 30]
-});
+const entrancePic = (className: string) => {
+    return DG.icon({
+        iconUrl: arrow,
+        iconSize: [30, 30],
+        className: `icon ${className}`,
+    });
+}
 
 type TMapMainProps = {
     emitterMap: EventEmitter,
@@ -39,7 +45,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({setError, createObj
 
         // доступ к актуальным данным расположенных на карте объектов не через useState
         // all rendered objects on map
-        let currentObjectsOnMap = useRef<Array<TMarker | IPolyline | IPolygon>>([])
+        let currentObjectsOnMap = useRef<TCurrentObjectsOnMap>({markers: [], entrances: [], squares: []})
 
         // is edit bar opened?
         let currentEditMode = useRef<boolean>(props.editMode)
@@ -130,7 +136,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({setError, createObj
             // save it in single obj state
             currentEditingObjectOnMap.current = marker
             // save it in multiple obj state
-            currentObjectsOnMap.current.push(marker)
+            currentObjectsOnMap.current.markers.push(marker)
         }, [setError, createObject])
         const createEntrance = useCallback((event: TMouseEvent, map: TMap) => {
             // is invoked only if edit bar is shown
@@ -142,20 +148,13 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({setError, createObj
             }
             let latLng = [event.latlng.lat, event.latlng.lng]
 
-            // dg.entrance test
-            let wktEntrance = oneCoordsToEntrance((event.latlng))
-            let options: TEntranceOptions = {vectors: [wktEntrance], interactive: true}
-            let entrance = DG.entrance(options).addTo(map).show(true)
-            entrance.setStyle({className: 'test_class'})
-            // test string
             // set new marker with our icon on map
-            let marker = DG.marker([...latLng], {icon: entrancePic, opacity: 0.6}).addTo(map);
-            // save it in multiple obj state
-            currentObjectsOnMap.current.push(marker)
+            let marker = DG.marker(latLng, {icon: entrancePic(String(latLng)), opacity: 0.6}).addTo(map);
+
             // save it in single entrance state
             currentEntrance.current = marker
             // return control to edit bar with new coords of entrance
-            props.emitterMap.emit(EVENT__REFRESH_OBJECT_PROPERTIES, {entranceCoords: latLng})
+            props.emitterMap.emit(EVENT__REFRESH_OBJECT_PROPERTIES, {activeEntrance: latLng})
         }, [props.emitterMap])
         const createSquare = useCallback((event: TMouseEvent, map: TMap) => {
             // is invoked only if edit bar is shown
@@ -181,7 +180,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({setError, createObj
                 // save it in single square state
                 currentSquare.current = square
                 // save it in multiple square state
-                currentObjectsOnMap.current.push(square)
+                currentObjectsOnMap.current.squares.push(square)
             }
         }, [props.emitterMap])
 
@@ -191,26 +190,38 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({setError, createObj
             // контейнер карты, не пересоздавая саму карту даже при изменении стейта
             if (map) {
                 // если карта создана
-                if (currentObjectsOnMap.current.length) {
+
+                if (currentObjectsOnMap.current.markers.length) {
                     // если есть объекты на карте - удалить
-                    currentObjectsOnMap.current.forEach((marker) => {
+                    currentObjectsOnMap.current.markers.forEach((marker) => {
                         marker.removeFrom(map)
                     })
                 }
+                if (currentObjectsOnMap.current.squares.length) {
+                    // если есть объекты на карте - удалить
+                    currentObjectsOnMap.current.squares.forEach((square) => {
+                        square.removeFrom(map)
+                    })
+                }
+                if (currentObjectsOnMap.current.entrances.length) {
+                    // если есть объекты на карте - удалить
+                    currentObjectsOnMap.current.entrances.forEach((entrance) => {
+                        entrance.removeFrom(map)
+                    })
+                }
+                currentObjectsOnMap.current = {markers: [], squares: [], entrances: []}
+
                 if (props.objs.length) {
                     // useEffect реагирует на изменение переданного массива объектов в компоненту
                     //
                     // если они есть и изменились
-                    let newObjects: Array<TMarker | IPolygon | IPolyline> = []
                     props.objs.forEach((obj) => {
                         // то прикрепляем к карте
-                        let objectToMap: TMarker | IPolygon | IPolyline
-
                         // точка, линия или многоугольник?
                         // под каждое значение 2gis предоставляет свой инструмент
                         // создания рендерящихся объектов
                         if (obj.itIs === 'point') {
-                            objectToMap = DG.marker(obj.coords).addTo(map)
+                            let objectToMap = DG.marker(obj.coords).addTo(map)
                             objectToMap.on('click', () => {
                                 // click on marker change edit and draw mode in edit bar
                                 // so need to delete unsaved objects
@@ -292,32 +303,35 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({setError, createObj
                                     createObject(editingObj);
                                 }
                             })
+                            currentObjectsOnMap.current.markers.push(objectToMap)
                         } else if (obj.itIs === 'line') {
-                            objectToMap = DG.polyline(obj.coords).addTo(map)
-                        }
-                        else /*if (obj.itIs === 'polygon')*/ {
-                            objectToMap = DG.polygon(obj.coords).addTo(map)
+                            // let objectToMap = DG.polyline(obj.coords).addTo(map)
+                            // currentObjectsOnMap.current.markers.push(objectToMap)
+                        } else /*if (obj.itIs === 'polygon')*/ {
+                            let objectToMap = DG.polygon(obj.coords).addTo(map)
+                            currentObjectsOnMap.current.squares.push(objectToMap)
                         }
 
-                        newObjects.push(objectToMap)
                         if (obj.entranceCoords && obj.entranceCoords.length) {
                             // if object have entrance coords - draw it
-                            let latLng = obj.entranceCoords
-                            let marker = DG.marker(latLng, {icon: entrancePic, opacity: 0.6}).addTo(map);
-                            newObjects.push(marker)
+                            obj.entranceCoords.forEach(entranceCoords => {
+                                let entrance = DG.marker(entranceCoords, {icon: entrancePic(String(entranceCoords)), opacity: .6}).addTo(map)
+
+                                currentObjectsOnMap.current.entrances.push(entrance)
+                            })
+                            // let latLng = obj.entranceCoords
+                            // let marker = DG.marker(latLng, {icon: entrancePic, opacity: 0.6}).addTo(map);
+                            // newObjects.push(marker)
                         }
                         if (obj.squareBorders && obj.squareBorders.length) {
                             // if object have square coords - draw it
                             let square = DG.polygon(obj.squareBorders).addTo(map)
-                            newObjects.push(square)
+                            currentObjectsOnMap.current.squares.push(square)
                         }
                     })
                     //@ts-ignore
                     // корректируем зум карты на основании актуальных координат
                     map.flyToBounds(getBounds(props.objs))
-
-                    // сохраняем отрисованные объекты для последующего удаления
-                    currentObjectsOnMap.current = newObjects
                 }
             }
         }, [props.objs, map, setError, createObject, props.emitterMap, removeUnsavedObjectsFromMap])
@@ -342,6 +356,22 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({setError, createObj
                     createMarker({latlng: {lat: coords[0], lng: coords[1]}} as TMouseEvent, map)
                 })
                 props.emitterSideBar.on(EVENT__CHANGE_EDIT_MODE, removeUnsavedObjectsFromMap)
+                props.emitterSideBar.on(EVENT__CREATE_ENTRANCE, () => {
+                    currentObjectsOnMap.current.entrances.push(currentEntrance.current as TMarker)
+                    currentEntrance.current = null
+                })
+                props.emitterSideBar.on(EVENT__DELETE_ENTRANCE, (deleteCoords) => {
+                    debugger
+                    let deleteEntranceIndex = currentObjectsOnMap.current.entrances.findIndex((object) => {
+                        let objCoords = object.getLatLng()
+                        let result = objCoords.lat === deleteCoords[0] && objCoords.lng === deleteCoords[1]
+                        return result
+                    })
+                    if (deleteEntranceIndex > -1) {
+                        currentObjectsOnMap.current.entrances[deleteEntranceIndex].removeFrom(map)
+                        currentObjectsOnMap.current.entrances.splice(deleteEntranceIndex, 1)
+                    }
+                })
             }
             return () => {
                 props.emitterSideBar.removeAllListeners()

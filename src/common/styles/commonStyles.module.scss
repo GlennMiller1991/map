@@ -1,0 +1,10 @@
+@import 'variables.modules';
+
+.active {
+  background-color: $activeColor;
+  opacity: .6;
+
+  &:hover {
+    background-color: $activeColor;
+  }
+}

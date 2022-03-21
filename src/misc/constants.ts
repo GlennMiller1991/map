@@ -11,6 +11,8 @@ export const EVENT__CHANGE_DRAW_MODE = 'changeDrawMode'
 export const EVENT__REFRESH_OBJECT_PROPERTIES = 'refreshObjectProperties'
 export const EVENT__CHANGE_EDIT_MODE = 'changeEditMode'
 export const EVENT__CREATE_MARKER = 'createMarker'
+export const EVENT__CREATE_ENTRANCE = 'createEntrance'
+export const EVENT__DELETE_ENTRANCE = 'deleteEntrance'
 
 // local storage exceptions
 export const EXCEPTION__FORBIDDEN = 18

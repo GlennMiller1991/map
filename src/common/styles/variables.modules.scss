@@ -1,0 +1,30 @@
+$accentColor: #2f2f2f;
+$activeColor: #a2f3a2;
+
+@mixin buttonView($size) {
+  width: $size;
+  height: $size;
+  border-radius: 50%;
+  color: #626161;
+  font-weight: 600;
+  border: calc(#{$size} / 10) solid $accentColor;
+
+  &:hover {
+    background-color: #fffefe;
+    color: #2b2a29;
+  }
+
+  &:active {
+    background-color: $activeColor;
+    opacity: .6;
+  }
+
+  &:disabled {
+    opacity: .3;
+  }
+}
+@mixin setFlex($align: center, $justify: center) {
+  display: flex;
+  justify-content: $justify;
+  align-items: $align;
+}

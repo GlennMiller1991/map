@@ -13,7 +13,7 @@ export const fakeObject: objectType = {
     classOfObject: undefined,
     square: '',
     coords: [],
-    entranceCoords: null,
+    entranceCoords: [],
     telephone: '',
     email: '',
     id: '-1',
@@ -85,7 +85,7 @@ function App() {
     const updateObject = useCallback((obj: TEditingObjectType) => {
         // switching edit mode with sweeping garbage
         // then update given object in state objectsSet if there is
-        let {changeMarkerDraggableMode, ...newObj} = obj
+        let {changeMarkerDraggableMode, activeEntrance, ...newObj} = obj
         let newObjectSet = objectsSet.map((object) => {
             return object.id === currentObject.id ? newObj as objectType : object
         })
@@ -131,6 +131,7 @@ function App() {
         }
     }, [])
     const loadFromLS = useCallback(() => {
+        setEditMode(false)
         // load object from ls with deleting all current objects in state
         // set error if browser does not allow to save to local storage
         try {

@@ -1,3 +1,5 @@
+@import 'src/common/styles/variables.modules';
+
 .editSideBar {
   opacity: .6;
   width: 500px;
@@ -62,36 +64,7 @@
         flex-wrap: wrap;
 
         .control {
-          cursor: pointer;
-          width: 50px;
-          height: 50px;
-          border: 5px solid #2f2f2f;
-          border-radius: 50%;
-          color: #626161;
-          font-weight: 600;
-
-          &:hover {
-            background-color: #fffefe;
-            color: #2b2a29;
-          }
-
-          &:active {
-            background-color: #a2f3a2;
-            opacity: .6;
-          }
-
-          &:disabled {
-            opacity: .3;
-          }
-        }
-
-        .active {
-          background-color: #a2f3a2;
-          opacity: .6;
-
-          &:hover {
-            background-color: #a2f3a2;
-          }
+          @include buttonView(50px);
         }
       }
       .inputsContainer {

@@ -1,0 +1,36 @@
+@import 'src/common/styles/variables.modules';
+
+.entranceButtonsContainer {
+    width: 90%;
+    margin: 15px 0;
+    display: grid;
+    grid-template-rows: 40px 1fr;
+    padding: 10px;
+    gap: 10px;
+    .entranceControls {
+        @include setFlex($justify: space-evenly);
+        button {
+            @include setFlex();
+            @include buttonView(40px);
+        }
+    }
+    .entrances {
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid black;
+            tr {
+                cursor: pointer;
+                &:hover {
+                    background-color: rgba(241, 207, 207, 0.3);
+                }
+                th, td {
+                    padding: 2px;
+                    border: 1px solid gray;
+                }
+            }
+
+        }
+    }
+}
+
