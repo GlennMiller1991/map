@@ -34,9 +34,9 @@ export const TabContent: React.FC<TTabContentProps> = React.memo((props) => {
         props.currentObject.changeMarkerDraggableMode(drawMode === 'position')
     }
 
-    const onPositionClickCallback = () => {
+    const onPositionClickCallback = (drawMode: drawingClassType) => {
         // function for making invoke simpler
-        props.changeDrawMode('position', props.editMode, onChangeDrawModeExtension)
+        props.changeDrawMode(drawMode, props.editMode, onChangeDrawModeExtension)
     }
 
     return (
@@ -48,27 +48,27 @@ export const TabContent: React.FC<TTabContentProps> = React.memo((props) => {
                     styles.active : ''}
                     `}
                         disabled={props.editMode === 'update' && props.currentObject.id === '-1'}
-                        onClick={onPositionClickCallback}>
+                        onClick={() => onPositionClickCallback('position')}>
                     POS
                 </button>
                 <button className={`${styles.control} ${props.drawMode === 'naming' ?
                     styles.active :
                     ''}`}
-                        onClick={() => props.changeDrawMode('naming', props.editMode)}
+                        onClick={() => onPositionClickCallback('naming')}
                         disabled={!props.currentObject.coords.length /*|| !!props.error*/}>
                     NAM
                 </button>
                 <button className={`${styles.control} ${props.drawMode === 'entrance' ?
                     styles.active :
                     ''}`}
-                        onClick={() => props.changeDrawMode('entrance', props.editMode)}
+                        onClick={() => onPositionClickCallback('entrance')}
                         disabled={!props.currentObject.coords.length /*|| !!props.error*/}>
                     ENT
                 </button>
                 <button className={`${styles.control} ${props.drawMode === 'square' ?
                     styles.active :
                     ''}`}
-                        onClick={() => props.changeDrawMode("square", props.editMode)}
+                        onClick={() => onPositionClickCallback('square')}
                         disabled={!props.currentObject.coords.length /*|| !!props.error*/}>
                     SQU
                 </button>

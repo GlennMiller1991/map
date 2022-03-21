@@ -5,7 +5,7 @@ import {
     objectType,
     pointCoordsType,
     TDragEndEvent,
-    TEditingObjectType, TLatLng, TMap, TMarker, TMouseEvent,
+    TEditingObjectType, TEntranceOptions, TLatLng, TMap, TMarker, TMouseEvent,
 } from "../../misc/types";
 import {getBounds} from "../../utils/getBounds";
 import EventEmitter from "events";
@@ -17,6 +17,7 @@ import {
     EVENT__REFRESH_OBJECT_PROPERTIES,
     RESPONSE__SUCCESS
 } from "../../misc/constants";
+import {oneCoordsToEntrance} from "../../utils/oneCoordsToEntrance";
 
 const DG = require('2gis-maps');
 const entrancePic = DG.icon({
@@ -141,6 +142,12 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({setError, createObj
             }
             let latLng = [event.latlng.lat, event.latlng.lng]
 
+            // dg.entrance test
+            let wktEntrance = oneCoordsToEntrance((event.latlng))
+            let options: TEntranceOptions = {vectors: [wktEntrance], interactive: true}
+            let entrance = DG.entrance(options).addTo(map).show(true)
+            entrance.setStyle({className: 'test_class'})
+
             // set new marker with our icon on map
             let marker = DG.marker([...latLng], {icon: entrancePic, opacity: 0.6}).addTo(map);
             // save it in multiple obj state
@@ -216,9 +223,8 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({setError, createObj
                                     // so define function
                                     const changeMarkerDraggableMode = (draggable: boolean) => {
                                         // delete first object from map
-                                        objectToMap?.removeFrom(map)
-
                                         if (draggable) {
+                                            objectToMap.removeFrom(map)
                                             // if position update mode in edit bar
                                             let newMarker: TMarker
                                             if (!currentEditingObjectMarkerPosition.current) {
@@ -356,6 +362,7 @@ export const MapMain: React.FC<TMapMainProps> = React.memo(({setError, createObj
                                      'center': [55.754753, 37.620861],
                                      'zoom': 9,
                                  })
+
                                  mapElem.on('click', (event: TMouseEvent) => {
                                      if (currentEditMode.current && currentDrawClass.current && currentDrawClass.current !== 'nothing') {
 

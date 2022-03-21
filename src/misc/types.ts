@@ -223,6 +223,16 @@ export type TPoint = {
     contains: (point: TPoint) => boolean,
     toString: () => string,
 }
+export type TEntrance = {
+    addTo: (map: TMap) => TEntrance,
+    removeFrom: (map: TMap) => TEntrance,
+    show: (fitBounds: boolean) => TEntrance,
+    hide: () => TEntrance,
+    isShown: () => boolean,
+    setFillColor: (color: string) => string,
+    setStrokeColor: (color: string) => string,
+}
+
 export type TMouseEvent = IEvent & {
     latlng: TLatLng,
     layerPoint: TPoint,
@@ -267,5 +277,14 @@ export type TPolylineOptions = Partial<{
     smoothFactor: number,
     noClip: boolean,
 }>
+export type TEntranceOptions = Partial<{
+    vectors: Array<string>,
+    fillColor: string,
+    strokeColor: string,
+    enableAnimation: boolean,
+    interactive: boolean,
+    autoClose: boolean,
+}>
 export type TStrokeLineCap = 'round' | 'butt' | 'square'
 export type TStrokeLineJoin = 'arcs' | 'bevel' | 'miter' | 'miter-clip' | 'round'
+export type TWKText = 'POINT' | 'MULTIPOINT' | 'LINESTRING' | 'MULTILINESTRING' | 'POLYGON' | 'MULTIPOLIGON' | 'TRIANGLE'
