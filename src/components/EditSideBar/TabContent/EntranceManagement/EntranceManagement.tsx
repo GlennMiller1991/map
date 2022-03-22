@@ -21,6 +21,8 @@ export const EntranceManagement: React.FC<TEntranceManagementProps> = React.memo
             let currentEntrance: HTMLImageElement = elems[0] as HTMLImageElement
             currentEntrance.style.width = '50px'
             currentEntrance.style.height = '50px'
+            currentEntrance.style.top = '-20px'
+            currentEntrance.style.left = '-10px'
         }
     }
     const onMouseLeaveEntranceCallback = (className: string) => {
@@ -29,6 +31,8 @@ export const EntranceManagement: React.FC<TEntranceManagementProps> = React.memo
             let currentEntrance: HTMLImageElement = elems[0] as HTMLImageElement
             currentEntrance.style.width = '30px'
             currentEntrance.style.height = '30px'
+            currentEntrance.style.top = '0'
+            currentEntrance.style.left = '0'
         }
     }
 

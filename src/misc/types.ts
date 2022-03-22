@@ -235,6 +235,10 @@ export type TEntrance = {
     setFillColor: (color: string) => string,
     setStrokeColor: (color: string) => string,
 }
+export interface IIcon extends  ILayer {
+    createIcon: (oldIcon?: HTMLElement) => HTMLElement,
+    createShadow: (oldIcon?: HTMLElement) => HTMLElement,
+}
 
 export type TMouseEvent = IEvent & {
     latlng: TLatLng,
@@ -287,6 +291,19 @@ export type TEntranceOptions = Partial<{
     enableAnimation: boolean,
     interactive: boolean,
     autoClose: boolean,
+}>
+export type TIconOptions = Partial<{
+    iconUrl: string,
+    iconRetinaUrl: string,
+    iconSize: [number, number],
+    iconAnchor: [number, number],
+    pupupAnchor: [number, number],
+    shadowUrl: string,
+    shadowRetinaUrl: string,
+    shadowSize: [number, number],
+    shadowAnchor: [number, number],
+    className: string,
+
 }>
 export type TStrokeLineCap = 'round' | 'butt' | 'square'
 export type TStrokeLineJoin = 'arcs' | 'bevel' | 'miter' | 'miter-clip' | 'round'

@@ -15,4 +15,5 @@ code {
 
 .icon {
   transition: .3s;
+  position: relative;
 }

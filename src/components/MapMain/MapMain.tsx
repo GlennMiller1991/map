@@ -5,7 +5,7 @@ import {
     objectType,
     pointCoordsType, TCurrentObjectsOnMap,
     TDragEndEvent,
-    TEditingObjectType, TLatLng, TMap, TMarker, TMouseEvent,
+    TEditingObjectType, TIconOptions, TLatLng, TMap, TMarker, TMouseEvent,
 } from "../../misc/types";
 import {getBounds} from "../../utils/getBounds";
 import EventEmitter from "events";
@@ -27,8 +27,9 @@ const entrancePic = (className: string) => {
     return DG.icon({
         iconUrl: arrow,
         iconSize: [30, 30],
+        iconAnchor: [15, 29],
         className: `icon ${className}`,
-    });
+    } as TIconOptions);
 }
 
 type TMapMainProps = {
