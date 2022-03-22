@@ -18,5 +18,9 @@ export const EVENT__DELETE_ENTRANCE = 'deleteEntrance'
 export const EXCEPTION__FORBIDDEN = 18
 export const EXCEPTION__EXCEED_MEMORY = 22
 
+// indexedDB name
+export const DB__NAME = 'app/map'
+export const DB__OBJECTS_STORAGE_NAME = 'app/map/objects'
+
 // fakeObject constants
 export const fakeID = '-2'

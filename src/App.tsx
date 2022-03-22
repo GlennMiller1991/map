@@ -210,6 +210,7 @@ function App() {
         }
     }, [])
     const loadFromIndexedDB = useCallback(() => {
+        setEditMode(false)
         // load object from indexedDB with deleting all current objects in state
         // let openDB = indexedDB.open(DB__NAME, 1)
         let openDB = indexedDB.open(DB__NAME, 1)
