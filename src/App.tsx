@@ -5,7 +5,7 @@ import {objectType, TEditingObjectType} from "./misc/types";
 import {EditSideBar} from "./components/EditSideBar/EditSideBar";
 import EventEmitter from "events";
 import {ErrorMessage} from "./components/ErrorMessage/ErrorMessage";
-import {EXCEPTION__EXCEED_MEMORY, EXCEPTION__FORBIDDEN} from "./misc/constants";
+import {DB__NAME, DB__OBJECTS_STORAGE_NAME, EXCEPTION__EXCEED_MEMORY, EXCEPTION__FORBIDDEN} from "./misc/constants";
 
 export const fakeObject: objectType = {
     // empty coords array and id is
@@ -161,6 +161,82 @@ function App() {
             }
         }
     }, [])
+    const saveToIndexedDB = useCallback((objectsSet: objectType[]) => {
+        // Function reflects current objects set in state on indexedDB.
+        // So can delete all indexedDB data if call it with empty objects array.
+        // Objects is stored by 2gis id of object
+        //
+        // 1. clear indexedDB storage
+        // 2. save all objects from state
+
+        // open database then set event handler
+        let openDB = indexedDB.open(DB__NAME, 1)
+        openDB.onupgradeneeded = () => {
+            // if there is not storage then create it
+            let db = openDB.result
+            if (!db.objectStoreNames.contains(DB__OBJECTS_STORAGE_NAME)) {
+                db.createObjectStore(DB__OBJECTS_STORAGE_NAME, {keyPath: 'id'})
+            }
+        }
+        openDB.onsuccess = () => {
+            // if opening was succeeded
+            let db = openDB.result
+
+            // create transaction -
+            // or all operations will be completed
+            // or all operations will be uncompleted without changing of database state
+            let transaction = db.transaction(DB__OBJECTS_STORAGE_NAME, 'readwrite')
+            transaction.oncomplete = () => {
+                setAppError('Сохранение прошло успешно')
+            }
+            transaction.onerror = () => {
+                setAppError('Сохранение не было выполнено')
+            }
+
+            // get db storage
+            let objectsDB = transaction.objectStore(DB__OBJECTS_STORAGE_NAME)
+
+            // clear all data
+            objectsDB.clear()
+
+            // set current objects set to db storage
+            objectsSet.forEach((object, ) => {
+                objectsDB.add(object)
+            })
+
+        }
+        openDB.onerror = () => {
+            setAppError('Не удаётся открыть базу данных')
+        }
+    }, [])
+    const loadFromIndexedDB = useCallback(() => {
+        // load object from indexedDB with deleting all current objects in state
+        // let openDB = indexedDB.open(DB__NAME, 1)
+        let openDB = indexedDB.open(DB__NAME, 1)
+        openDB.onsuccess = () => {
+            let db = openDB.result
+            let transaction = db.transaction(DB__OBJECTS_STORAGE_NAME, 'readonly')
+            let objects: Array<objectType> = []
+            transaction.oncomplete = () => {
+                setAppError('Данные загружены')
+                setObjectsSet(objects)
+            }
+            transaction.onerror = () => {
+                setAppError('Данные не были загружены')
+            }
+            let objectsDB = transaction.objectStore(DB__OBJECTS_STORAGE_NAME)
+            let request = objectsDB.getAll()
+            request.onsuccess = () => {
+                request.result.forEach((object: objectType, index) => {
+                    objects[index] = object
+                })
+            }
+        }
+        openDB.onerror = () => {
+            setAppError('Не удалось открыть базу данных')
+        }
+    }, [])
+
 
     // side effects
     useEffect(() => {
